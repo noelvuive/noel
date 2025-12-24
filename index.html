@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL CHO ANH VINH V10</title>
+    <title>NOEL CHO ANH VINH V10 - PRO</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; cursor: move; }
@@ -22,16 +22,16 @@
         camera.position.set(0, 5, 25);
         controls.enableDamping = true;
 
-        // 1. CHỮ HIỆN TỪNG TỪ - ĐỊT MẸ NGHỆ THUẬT VCL
+        // 1. CHỮ HIỆN TỪNG TỪ - TRẮNG ĐẬM, DÀY ĐẶC
         const fullText = "MERRY CHRISTMAS";
         let currentText = "";
         let charIndex = 0;
         let textParticlesGeo = new THREE.BufferGeometry();
-        let textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true });
+        // Tăng size hạt và độ trắng
+        let textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 1 });
         let textMesh = new THREE.Points(textParticlesGeo, textMat);
         scene.add(textMesh);
 
-        let textPositions = [];
         let textVelocities = [];
 
         function updateTextCanvas(str) {
@@ -39,39 +39,45 @@
             const tCtx = textCanvas.getContext('2d');
             textCanvas.width = 1000; textCanvas.height = 200;
             tCtx.fillStyle = 'white';
-            tCtx.font = 'Bold 50px Arial';
+            tCtx.font = 'black 80px Arial Black'; // Font cực đậm cho anh Vinh
             tCtx.textAlign = 'center';
             tCtx.fillText(str, 500, 100);
 
             const imgData = tCtx.getImageData(0, 0, 1000, 200).data;
             const newPositions = [];
             textVelocities = [];
-            for (let y = 0; y < 200; y += 4) {
-                for (let x = 0; x < 1000; x += 4) {
+            // Quét dày hơn (bước nhảy 3 thay vì 4 hoặc 5) để chữ đậm đặc
+            for (let y = 0; y < 200; y += 3) {
+                for (let x = 0; x < 1000; x += 3) {
                     if (imgData[(y * 1000 + x) * 4 + 3] > 128) {
-                        newPositions.push((x - 500) * 0.02, (100 - y) * 0.02, 0);
-                        textVelocities.push((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2);
+                        newPositions.push((x - 500) * 0.025, (100 - y) * 0.025, 0);
+                        textVelocities.push((Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25);
                     }
                 }
             }
             textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
         }
 
-        // 2. CÂY THÔNG HỒNG - ĐỨNG IM NHƯ CHÓ THUI
-        const maxPoints = 3000;
+        // 2. CÂY THÔNG HỒNG - CHUẨN BỊ ĐỂ XOAY
+        const maxPoints = 3500;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
         curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
         const curveMat = new THREE.LineBasicMaterial({ color: 0xff1493 });
         const line = new THREE.Line(curveGeo, curveMat);
-        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }));
-        scene.add(line); scene.add(glowPoints);
+        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.18, transparent: true, blending: THREE.AdditiveBlending }));
+        
+        // Tạo một group để xoay cả cây lẫn sao
+        const treeGroup = new THREE.Group();
+        treeGroup.add(line); 
+        treeGroup.add(glowPoints);
+        scene.add(treeGroup);
         line.visible = false; glowPoints.visible = false;
 
-        // 3. NGÔI SAO - ĐỨNG IM VÀ THẲNG ĐỨNG
+        // 3. NGÔI SAO - ĐỨNG THẲNG TRONG GROUP XOAY
         function createStar(color) {
             const shape = new THREE.Shape();
-            const outerRadius = 0.6; const innerRadius = 0.25;
+            const outerRadius = 0.7; const innerRadius = 0.3;
             for (let i = 0; i < 10; i++) {
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
                 const angle = (i / 10) * Math.PI * 2 + Math.PI/2;
@@ -85,15 +91,15 @@
         const star = createStar(0xffd700);
         star.position.set(0, 6.2, 0); 
         star.visible = false;
-        scene.add(star);
+        treeGroup.add(star);
 
         // 4. TUYẾT RƠI DÀY ĐẶC
-        const snowCount = 6000;
+        const snowCount = 7000;
         const snowGeo = new THREE.BufferGeometry();
         const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*70;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 }));
+        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.09 }));
         scene.add(snow);
 
         let counter = 0;
@@ -106,59 +112,62 @@
             timer++;
             controls.update();
 
-            // Stage 0: Hiện từng chữ
+            // Stage 0: Hiện từng chữ trắng đậm
             if (stage === 0) {
                 charTimer++;
-                if (charTimer % 15 === 0 && charIndex <= fullText.length) {
+                if (charTimer % 12 === 0 && charIndex <= fullText.length) {
                     currentText = fullText.substring(0, charIndex);
                     updateTextCanvas(currentText);
                     charIndex++;
                 }
-                if (charIndex > fullText.length && timer > 350) {
+                if (charIndex > fullText.length && timer > 300) {
                     stage = 1;
                 }
             }
 
-            // Stage 1: Chữ nổ tung
+            // Stage 1: Chữ nổ tung biến mất
             if (stage === 1) {
                 const pos = textParticlesGeo.attributes.position.array;
                 if (pos) {
                     for (let i = 0; i < pos.length; i++) {
-                        pos[i] += textVelocities[i] * 3;
+                        pos[i] += textVelocities[i] * 3.5;
                     }
                     textParticlesGeo.attributes.position.needsUpdate = true;
                 }
-                textMat.opacity -= 0.02;
+                textMat.opacity -= 0.03;
                 if (textMat.opacity <= 0) {
                     stage = 2;
                     line.visible = true; glowPoints.visible = true;
                 }
             }
 
-            // Stage 2: Vẽ cây thông (ĐỨNG IM)
-            if (stage === 2 && counter < maxPoints) {
-                let speed = 20;
-                for(let i=0; i<speed; i++) {
-                    if (counter < maxPoints) {
-                        const t = counter / maxPoints;
-                        const angle = 0.5 * counter; 
-                        const radius = 5 * (1 - t); 
-                        const y = t * 12 - 6;      
-                        curvePos[counter*3] = Math.cos(angle)*radius;
-                        curvePos[counter*3+1] = y;
-                        curvePos[counter*3+2] = Math.sin(angle)*radius;
-                        counter++;
+            // Stage 2: Vẽ cây thông và cho XOAY như cũ
+            if (stage === 2) {
+                treeGroup.rotation.y += 0.015; // Địt mẹ, nó xoay đây rồi
+                if (counter < maxPoints) {
+                    let speed = 25;
+                    for(let i=0; i<speed; i++) {
+                        if (counter < maxPoints) {
+                            const t = counter / maxPoints;
+                            const angle = 0.5 * counter; 
+                            const radius = 5 * (1 - t); 
+                            const y = t * 12 - 6;      
+                            curvePos[counter*3] = Math.cos(angle)*radius;
+                            curvePos[counter*3+1] = y;
+                            curvePos[counter*3+2] = Math.sin(angle)*radius;
+                            counter++;
+                        }
                     }
+                    curveGeo.attributes.position.needsUpdate = true;
+                } else {
+                    star.visible = true;
                 }
-                curveGeo.attributes.position.needsUpdate = true;
-            } else if (counter >= maxPoints) {
-                star.visible = true;
             }
 
-            // Tuyết rơi
+            // Tuyết rơi ngập mặt
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
-                p[i] -= 0.12; if(p[i] < -25) p[i] = 25;
+                p[i] -= 0.15; if(p[i] < -30) p[i] = 30;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
