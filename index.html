@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL CHO ANH VINH V10 - PERFECT MOBILE</title>
+    <title>NOEL CHO ANH VINH V10 - SLOW ROLL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
@@ -21,10 +21,10 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 35); // Đẩy xa hơn tí nữa cho chắc ăn
+        camera.position.set(0, 5, 35);
         controls.enableDamping = true;
 
-        // 1. CHỮ NHỎ GỌN CHO MOBILE - HIỆN TỪNG CHỮ TRẮNG ĐẬM
+        // 1. CHỮ TRẮNG ĐẬM NHỎ GỌN
         const fullText = "MERRY CHRISTMAS";
         let currentText = "";
         let charIndex = 0;
@@ -51,7 +51,6 @@
             for (let y = 0; y < 200; y += 3) {
                 for (let x = 0; x < 1000; x += 3) {
                     if (imgData[(y * 1000 + x) * 4 + 3] > 128) {
-                        // Tỉ lệ 0.015 cực nhỏ cho điện thoại nhìn rõ hết
                         newPositions.push((x - 500) * 0.015, (100 - y) * 0.015, 0);
                         textVelocities.push((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
                     }
@@ -60,7 +59,7 @@
             textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
         }
 
-        // 2. CÂY THÔNG HỒNG XOAY
+        // 2. CÂY THÔNG - ĐÃ CHO CUỘN CHẬM LẠI THEO Ý ANH VINH
         const maxPoints = 4000;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
@@ -125,9 +124,9 @@
             }
 
             if (stage === 2) {
-                treeGroup.rotation.y += 0.02; 
+                treeGroup.rotation.y += 0.015; 
                 if (counter < maxPoints) {
-                    let speed = 40;
+                    let speed = 8; // ĐỊT MẸ GIẢM SPEED TỪ 40 XUỐNG 8 CHO NÓ CHẬM
                     for(let i=0; i<speed; i++) {
                         if (counter < maxPoints) {
                             const t = counter / maxPoints;
@@ -161,3 +160,4 @@
     </script>
 </body>
 </html>
+
