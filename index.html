@@ -1,166 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Giáng Sinh Của Anh Vinh</title>
+    <title>Noel Cho Anh Vinh - Bản 3D Đặc Biệt</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; }
-        
-        /* Hiệu ứng chữ Merry Christmas giữa màn hình */
-        #intro-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 100;
-            text-align: center;
-            pointer-events: none;
-        }
-
-        .letter {
-            display: inline-block;
-            color: white;
-            font-size: 80px;
-            font-weight: 900;
-            opacity: 0;
-            transform: scale(0.5);
-            animation: appear 0.5s forwards, fadeOut 1.5s 4s forwards;
-            text-shadow: 0 0 20px rgba(255,255,255,0.8);
-        }
-
-        /* Xuất hiện từng chữ */
-        @keyframes appear {
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* Tan biến dần dần */
-        @keyframes fadeOut {
-            to { opacity: 0; filter: blur(20px); transform: scale(1.5); }
-        }
     </style>
 </head>
 <body>
-    <div id="intro-container" id="intro">
-        </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // 1. Xử lý hiện chữ MERRY CHRISTMAS
-        const text = "MERRY CHRISTMAS";
-        const container = document.getElementById('intro-container');
-        
-        text.split("").forEach((char, i) => {
-            const span = document.createElement('span');
-            span.innerText = char === " " ? "\u00A0" : char;
-            span.className = 'letter';
-            span.style.animationDelay = `${i * 0.1}s, 4s`; // Hiện từng chữ cách nhau 0.1s
-            container.appendChild(span);
-        });
-
-        // 2. Setup Three.js (Cây thông của anh)
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 10, 25);
+        camera.position.set(0, 5, 25);
         controls.enableDamping = true;
 
-        // Tuyết rơi
+        // 1. Tạo hệ thống tuyết
         const snowGeo = new THREE.BufferGeometry();
-        const snowCount = 2500;
+        const snowCount = 2000;
         const snowPos = new Float32Array(snowCount * 3);
         for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 });
-        const snow = new THREE.Points(snowGeo, snowMat);
+        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 }));
         scene.add(snow);
 
-        // Sợi dây hồng cuộn
+        // 2. Chữ MERRY CHRISTMAS tan biến kiểu 3D
+        let textParticles;
+        const loader = new THREE.FontLoader();
+        // Load font từ CDN để vẽ chữ 3D
+        loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+            const textGeo = new THREE.TextGeometry('MERRY CHRISTMAS', {
+                font: font, size: 2.5, height: 0.2, curveSegments: 12
+            });
+            textGeo.center();
+            
+            // Chuyển chữ thành hệ thống hạt
+            const pts = textGeo.vertices || []; // Fallback cho bản cũ
+            const particlesGeo = new THREE.BufferGeometry();
+            const pCount = 3000;
+            const positions = new Float32Array(pCount * 3);
+            const destinations = new Float32Array(pCount * 3);
+
+            for (let i = 0; i < pCount; i++) {
+                // Lấy điểm ngẫu nhiên trên mặt chữ
+                const p = textGeo.faces[Math.floor(Math.random() * textGeo.faces.length)];
+                const v = textGeo.vertices[p.a];
+                positions[i*3] = v.x; positions[i*3+1] = v.y; positions[i*3+2] = v.z;
+                // Đích đến khi tan biến (bay loạn xạ)
+                destinations[i*3] = (Math.random()-0.5)*100;
+                destinations[i*3+1] = (Math.random()-0.5)*100;
+                destinations[i*3+2] = (Math.random()-0.5)*100;
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            textParticles = new THREE.Points(particlesGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 }));
+            scene.add(textParticles);
+        });
+
+        // 3. Cây thông hồng (Sẵn sàng cuộn)
         const maxPoints = 2500;
         const curveGeo = new THREE.BufferGeometry();
-        const positions = new Float32Array(maxPoints * 3);
-        curveGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const curvePos = new Float32Array(maxPoints * 3);
+        curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
         const curveMat = new THREE.LineBasicMaterial({ color: 0xff1493 });
         const line = new THREE.Line(curveGeo, curveMat);
-        scene.add(line);
-
-        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({
-            color: 0xff69b4, size: 0.15, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending
-        }));
-        scene.add(glowPoints);
+        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }));
+        scene.add(line); scene.add(glowPoints);
 
         // Ngôi sao thẳng đứng
-        function createStar(color) {
-            const shape = new THREE.Shape();
-            const outerRadius = 0.8; const innerRadius = 0.3;
-            for (let i = 0; i < 10; i++) {
-                const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                const angle = (i / 10) * Math.PI * 2;
-                if (i === 0) shape.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
-                else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
-            }
-            const starGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.1, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 });
-            const mesh = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: color }));
-            mesh.rotation.z = Math.PI / 10; 
-            return mesh;
-        }
-        const star = createStar(0xffd700);
-        star.position.set(0, 9, 0);
-        star.visible = false;
+        const starGeo = new THREE.SphereGeometry(0.6, 16, 16); // Giả lập ngôi sao đơn giản để code nhẹ
+        const star = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: 0xffd700 }));
+        star.position.y = 10; star.visible = false;
         scene.add(star);
 
+        let startTime = Date.now();
         let counter = 0;
+        let startTree = false;
+
         function animate() {
             requestAnimationFrame(animate);
-            
-            // Đợi chữ tan biến xong (khoảng 5s) thì bắt đầu cuộn cây cho đẹp
-            setTimeout(() => {
-                if (counter < maxPoints) {
-                    let speed = 15;
-                    for(let step = 0; step < speed; step++) {
-                        if (counter < maxPoints) {
-                            const t = counter / maxPoints;
-                            const angle = 0.4 * counter; 
-                            const radius = 8 * (1 - t);   
-                            const y = t * 18 - 9;         
-                            positions[counter * 3] = Math.cos(angle) * radius;
-                            positions[counter * 3 + 1] = y;
-                            positions[counter * 3 + 2] = Math.sin(angle) * radius;
-                            counter++;
-                        }
-                    }
-                    curveGeo.attributes.position.needsUpdate = true;
-                } else {
-                    star.visible = true;
-                }
-            }, 2000); // Bắt đầu mọc cây sau 2 giây khi chữ đang hiện
+            let elapsed = (Date.now() - startTime) / 1000;
 
+            // Xử lý tan biến chữ
+            if (textParticles) {
+                if (elapsed > 3) { // Sau 3 giây bắt đầu tan biến
+                    const pos = textParticles.geometry.attributes.position.array;
+                    for (let i = 0; i < pos.length; i++) {
+                        pos[i] += (Math.random() - 0.5) * 0.5; // Bay ra như bụi
+                    }
+                    textParticles.geometry.attributes.position.needsUpdate = true;
+                    textParticles.material.opacity -= 0.01;
+                    if (elapsed > 5) startTree = true; // Sau khi tan biến thì cây mới mọc
+                }
+            }
+
+            // Mọc cây thông
+            if (startTree && counter < maxPoints) {
+                let speed = 20;
+                for(let i=0; i<speed; i++) {
+                    if (counter < maxPoints) {
+                        const t = counter / maxPoints;
+                        const angle = 0.4 * counter; 
+                        const radius = 8 * (1 - t);   
+                        const y = t * 18 - 9;         
+                        curvePos[counter*3] = Math.cos(angle)*radius;
+                        curvePos[counter*3+1] = y;
+                        curvePos[counter*3+2] = Math.sin(angle)*radius;
+                        counter++;
+                    }
+                }
+                curveGeo.attributes.position.needsUpdate = true;
+            } else if (counter >= maxPoints) {
+                star.visible = true;
+            }
+
+            // Tuyết rơi
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
-                p[i] -= 0.1;
-                if(p[i] < -25) p[i] = 25;
+                p[i] -= 0.1; if(p[i] < -25) p[i] = 25;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
             line.rotation.y += 0.005;
             glowPoints.rotation.y += 0.005;
-
-            controls.update();
             renderer.render(scene, camera);
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
