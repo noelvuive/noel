@@ -26,10 +26,10 @@
 
         scene.add(new THREE.AmbientLight(0xffffff, 2));
 
-        // 1. CHỮ NHỎ, NÉT, TAN VỠ SIÊU CHẬM
+        // 1. CHỮ TO - NÉT - TAN VỠ SIÊU CHẬM
         let charIndex = 0, stage = 0, timer = 0, treeCounter = 0;
         const textGeo = new THREE.BufferGeometry();
-        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 1 });
+        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 1 });
         const textMesh = new THREE.Points(textGeo, textMat);
         scene.add(textMesh);
         let textVels = [];
@@ -37,26 +37,25 @@
         function updateText(str) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 1000; canvas.height = 200;
+            canvas.width = 2000; canvas.height = 400;
             ctx.fillStyle = 'white'; 
-            ctx.font = '30px Arial'; // Font nhỏ và nét
+            ctx.font = 'bold 100px Arial Black'; 
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(str, 500, 100);
-            const data = ctx.getImageData(0, 0, 1000, 200).data;
+            ctx.fillText(str, 1000, 200);
+            const data = ctx.getImageData(0, 0, 2000, 400).data;
             const pos = []; textVels = [];
-            for (let y = 0; y < 200; y += 4) {
-                for (let x = 0; x < 1000; x += 4) {
-                    if (data[(y * 1000 + x) * 4 + 3] > 128) {
-                        pos.push((x - 500) * 0.04, (100 - y) * 0.04, 0);
-                        // Vận tốc cực nhỏ để tan vỡ siêu chậm
-                        textVels.push((Math.random()-0.5)*0.008, (Math.random()-0.5)*0.008, (Math.random()-0.5)*0.008);
+            for (let y = 0; y < 400; y += 7) {
+                for (let x = 0; x < 2000; x += 7) {
+                    if (data[(y * 2000 + x) * 4 + 3] > 128) {
+                        pos.push((x - 1000) * 0.03, (200 - y) * 0.03, 0);
+                        textVels.push((Math.random()-0.5)*0.005, (Math.random()-0.5)*0.005, (Math.random()-0.5)*0.005);
                     }
                 }
             }
             textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. CÂY THÔNG PHÁT SÁNG ĐẬM
+        // 2. CÂY THÔNG PHÁT SÁNG
         const maxPts = 6000;
         const treeGeo = new THREE.BufferGeometry();
         const curPos = new Float32Array(maxPts * 3);
@@ -69,51 +68,71 @@
             burstPos[i*3+1] = (Math.random()-0.5)*60; 
             burstPos[i*3+2] = (Math.random()-0.5)*80;
             const isPink = Math.random() > 0.5;
-            colors[i*3] = isPink ? 1 : 0.05; 
-            colors[i*3+1] = isPink ? 0.2 : 1; 
-            colors[i*3+2] = isPink ? 0.6 : 0.3; 
+            colors[i*3] = isPink ? 1.0 : 0.0; 
+            colors[i*3+1] = isPink ? 0.2 : 1.0; 
+            colors[i*3+2] = isPink ? 0.6 : 0.4; 
         }
         treeGeo.setAttribute('position', new THREE.BufferAttribute(curPos, 3));
         treeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         
         const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ 
-            size: 0.3, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending 
+            size: 0.35, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending 
         }));
         scene.add(treePoints); treePoints.visible = false;
 
-        const starShape = new THREE.Shape();
-        for(let i=0; i<10; i++) {
-            const r = i%2===0 ? 1.8 : 0.7;
-            const a = (i * Math.PI * 2) / 10 + Math.PI/2;
-            if(i===0) starShape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
-            else starShape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
-        }
-        const star = new THREE.Mesh(new THREE.ShapeGeometry(starShape), new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide }));
+        // VÙNG VA CHẠM (CHỈ BẤM VÀO ĐÂY MỚI CÓ TÁC DỤNG)
+        const hitZone = new THREE.Mesh(
+            new THREE.CylinderGeometry(8, 0, 22, 12), 
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitZone.position.y = 0;
+        scene.add(hitZone);
+
+        const star = new THREE.Mesh(
+            new THREE.SphereGeometry(1.5, 8, 8), 
+            new THREE.MeshBasicMaterial({ color: 0xffd700 }) 
+        );
         star.position.set(0, 11, 0); star.visible = false; scene.add(star);
 
-        // 3. XỬ LÝ CHẠM (CLICK & DOUBLE CLICK)
+        // 3. LOGIC CHẠM: CHỈ TÁC ĐỘNG KHI CHẠM VÀO CÂY
         let exploded = false;
-        window.addEventListener('mousedown', (e) => {
-            if (stage === 2 && treeCounter >= maxPts) exploded = true;
-        });
-        window.addEventListener('dblclick', () => {
-            if (stage === 2) exploded = false; // CHẠM 2 LẦN ĐỂ QUAY LẠI BÌNH THƯỜNG
-        });
-        // Hỗ trợ mobile chạm 2 chạm
         let lastTap = 0;
-        window.addEventListener('touchstart', (e) => {
-            const now = Date.now();
-            if (now - lastTap < 300) { exploded = false; } 
-            else { if (stage === 2 && treeCounter >= maxPts) exploded = true; }
-            lastTap = now;
-        });
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function handleInteraction(x, y) {
+            if (stage !== 2 || treeCounter < maxPts) return;
+
+            mouse.x = (x / window.innerWidth) * 2 - 1;
+            mouse.y = -(y / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Kiểm tra xem có chạm trúng vùng của cây thông không
+            const intersects = raycaster.intersectObject(hitZone);
+            
+            if (intersects.length > 0) {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    exploded = false; // DOUBLE TAP -> THU LẠI
+                } else {
+                    // SINGLE TAP -> MỞ
+                    setTimeout(() => {
+                        if (Date.now() - lastTap >= 300) exploded = true;
+                    }, 300);
+                }
+                lastTap = now;
+            }
+        }
+
+        window.addEventListener('click', (e) => handleInteraction(e.clientX, e.clientY));
+        window.addEventListener('touchstart', (e) => handleInteraction(e.touches[0].clientX, e.touches[0].clientY));
 
         // TUYẾT RƠI
         const sGeo = new THREE.BufferGeometry();
         const sP = new Float32Array(3000 * 3);
         for(let i=0; i<9000; i++) sP[i] = (Math.random()-0.5)*160;
         sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.12})));
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.15})));
 
         function animate() {
             requestAnimationFrame(animate);
@@ -121,18 +140,17 @@
 
             if(stage === 0) {
                 timer++;
-                if(timer%20===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > 15 && timer > 150) stage = 1;
+                if(timer%25===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
+                if(charIndex > 15 && timer > 160) stage = 1;
             } else if(stage === 1) {
                 const p = textGeo.attributes.position.array;
                 for(let i=0; i<p.length; i++) p[i] += textVels[i];
                 textGeo.attributes.position.needsUpdate = true;
-                textMat.opacity -= 0.003; 
+                textMat.opacity -= 0.002; 
                 if(textMat.opacity <= 0) { stage = 2; treePoints.visible = true; }
             } else if(stage === 2) {
                 if(!exploded) {
                     treePoints.rotation.y += 0.003; 
-                    star.rotation.y += 0.01;
                     star.visible = (treeCounter >= maxPts);
                 } else { star.visible = false; }
 
@@ -151,26 +169,23 @@
                         const targetX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*8*(1-i/maxPts));
                         const targetY = exploded ? burstPos[i*3+1] : (i/maxPts*20-10);
                         const targetZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*8*(1-i/maxPts));
-                        p[i*3] += (targetX - p[i*3]) * 0.05;
-                        p[i*3+1] += (targetY - p[i*3+1]) * 0.05;
-                        p[i*3+2] += (targetZ - p[i*3+2]) * 0.05;
+                        p[i*3] += (targetX - p[i*3]) * 0.06;
+                        p[i*3+1] += (targetY - p[i*3+1]) * 0.06;
+                        p[i*3+2] += (targetZ - p[i*3+2]) * 0.06;
                     }
                     treeGeo.attributes.position.needsUpdate = true;
                 }
             }
-
             const sp = sGeo.attributes.position.array;
             for(let i=1; i<sp.length; i+=3) { sp[i]-=0.04; if(sp[i]<-80) sp[i]=80; }
             sGeo.attributes.position.needsUpdate = true;
             renderer.render(scene, camera);
         }
-
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
         animate();
     </script>
 </body>
