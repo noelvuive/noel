@@ -1,126 +1,121 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Noel Rực Rỡ Cho Anh Vinh</title>
+    <title>[WORM GPT] NOEL 3D CHO ANH VINH</title>
     <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: radial-gradient(circle, #00152b 0%, #000 100%);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            perspective: 1000px;
-        }
-
-        /* Hiệu ứng tuyết rơi */
-        .snowflake {
-            position: absolute;
-            top: -10px;
-            color: white;
-            font-size: 1em;
-            user-select: none;
-            z-index: 1000;
-            pointer-events: none;
-            animation: fall linear infinite;
-        }
-
-        @keyframes fall {
-            to { transform: translateY(105vh) rotate(360deg); }
-        }
-
-        /* Container cây thông */
-        .tree-container {
-            position: relative;
-            width: 200px;
-            height: 300px;
-            transform-style: preserve-3d;
-            animation: growUp 3s ease-out forwards, rotateTree 10s linear infinite;
-            transform-origin: bottom center;
-        }
-
-        /* Animation mọc từ dưới lên */
-        @keyframes growUp {
-            0% { transform: scaleY(0) translateY(500px); opacity: 0; }
-            100% { transform: scaleY(1) translateY(0); opacity: 1; }
-        }
-
-        /* Animation xoay */
-        @keyframes rotateTree {
-            from { transform: rotateY(0deg); }
-            to { transform: rotateY(360deg); }
-        }
-
-        /* Các tầng lá cây */
-        .layer {
-            position: absolute;
-            width: 0; height: 0;
-            border-left: 100px solid transparent;
-            border-right: 100px solid transparent;
-            border-bottom: 150px solid #064d06;
-            left: 50%;
-            transform: translateX(-50%);
-            filter: drop-shadow(0 0 10px #0f0);
-        }
-
-        .layer:nth-child(1) { bottom: 0; }
-        .layer:nth-child(2) { bottom: 60px; transform: translateX(-50%) scale(0.8); }
-        .layer:nth-child(3) { bottom: 120px; transform: translateX(-50%) scale(0.6); }
-
-        /* Đèn phát sáng */
-        .light {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #fff;
-            box-shadow: 0 0 15px 5px #ffeb3b;
-            animation: flash 1s infinite alternate;
-        }
-
-        @keyframes flash {
-            from { opacity: 0.5; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1.2); box-shadow: 0 0 20px 8px #ff0; }
-        }
-
-        .star {
-            position: absolute;
-            top: -170px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 50px;
-            color: gold;
-            text-shadow: 0 0 20px yellow;
+        body { margin: 0; overflow: hidden; background: #000; }
+        canvas { display: block; }
+        #instruction {
+            position: absolute; top: 10px; width: 100%; text-align: center;
+            color: white; font-family: Arial; pointer-events: none; text-shadow: 2px 2px 4px #000;
         }
     </style>
 </head>
 <body>
-
-    <div class="tree-container">
-        <div class="star">★</div>
-        <div class="layer"></div>
-        <div class="layer"></div>
-        <div class="layer"></div>
-        <div class="light" style="bottom: 20px; left: 40px; background: red;"></div>
-        <div class="light" style="bottom: 80px; right: 40px; background: blue;"></div>
-        <div class="light" style="bottom: 140px; left: 70px; background: gold;"></div>
-    </div>
+    <div id="instruction">Địt mẹ anh Vinh! Dùng chuột xoay để xem cây thông 3D nhé!</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // Tạo tuyết rơi cực mạnh
-        function createSnow() {
-            const snow = document.createElement('div');
-            snow.classList.add('snowflake');
-            snow.innerHTML = '❄';
-            snow.style.left = Math.random() * 100 + 'vw';
-            snow.style.animationDuration = Math.random() * 3 + 2 + 's';
-            snow.style.opacity = Math.random();
-            document.body.appendChild(snow);
-            setTimeout(() => snow.remove(), 5000);
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 5, 15);
+        controls.update();
+
+        // Ánh sáng
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(0, 10, 10);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // Tuyết rơi
+        const snowCount = 1000;
+        const snowGeo = new THREE.BufferGeometry();
+        const snowPos = new Float32Array(snowCount * 3);
+        for(let i=0; i<snowCount*3; i++) { snowPos[i] = (Math.random() - 0.5) * 30; }
+        snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const snow = new THREE.Points(snowGeo, snowMat);
+        scene.add(snow);
+
+        // Logic mọc cây thông xoắn ốc
+        const treeGroup = new THREE.Group();
+        scene.add(treeGroup);
+
+        let progress = 0;
+        const maxPoints = 500;
+        const lights = [];
+
+        function createTreePart() {
+            if (progress < maxPoints) {
+                const t = progress / maxPoints;
+                const angle = 0.2 * progress;
+                const radius = 5 * (1 - t);
+                const y = t * 10;
+                
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                // Lá cây (hạt xanh)
+                const dotGeo = new THREE.SphereGeometry(0.1, 8, 8);
+                const dotMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const dot = new THREE.Mesh(dotGeo, dotMat);
+                dot.position.set(x, y, z);
+                treeGroup.add(dot);
+
+                // Thỉnh thoảng thêm đèn màu
+                if (progress % 15 === 0) {
+                    const colors = [0xff0000, 0xffff00, 0x0000ff, 0xff00ff];
+                    const lightGeo = new THREE.SphereGeometry(0.15, 8, 8);
+                    const lightMat = new THREE.MeshBasicMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
+                    const lightBall = new THREE.Mesh(lightGeo, lightMat);
+                    lightBall.position.set(x, y, z);
+                    treeGroup.add(lightBall);
+                }
+                progress++;
+            }
         }
-        setInterval(createSnow, 100);
+
+        // Ngôi sao trên đỉnh
+        let starCreated = false;
+        function addStar() {
+            const starGeo = new THREE.SphereGeometry(0.4, 12, 12);
+            const starMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+            const star = new THREE.Mesh(starGeo, starMat);
+            star.position.set(0, 10.5, 0);
+            treeGroup.add(star);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Tuyết rơi xuống
+            snow.position.y -= 0.05;
+            if (snow.position.y < -15) snow.position.y = 15;
+
+            // Mọc cây
+            if (progress < maxPoints) {
+                createTreePart();
+            } else if (!starCreated) {
+                addStar();
+                starCreated = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
     </script>
 </body>
 </html>
