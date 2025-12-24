@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL ANH VINH - SUPER FIX</title>
+    <title>NOEL ANH VINH - PARTICLE TOGGLE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
@@ -38,7 +38,7 @@
         pLight.position.set(10, 20, 10);
         scene.add(pLight);
 
-        // 1. CHỮ HIỆN DẦN & NỔ TUNG
+        // 1. CHỮ NỔ TUNG
         const fullText = "MERRY CHRISTMAS";
         let charIndex = 0, stage = 0, timer = 0, counter = 0;
         const textParticlesGeo = new THREE.BufferGeometry();
@@ -56,8 +56,8 @@
             ctx.fillText(str, 500, 100);
             const data = ctx.getImageData(0, 0, 1000, 200).data;
             const pos = []; textVelocities = [];
-            for (let y = 0; y < 200; y += 3) {
-                for (let x = 0; x < 1000; x += 3) {
+            for (let y = 0; y < 200; y += 4) {
+                for (let x = 0; x < 1000; x += 4) {
                     if (data[(y * 1000 + x) * 4 + 3] > 128) {
                         pos.push((x - 500) * 0.02, (100 - y) * 0.02, 0);
                         textVelocities.push((Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5, (Math.random()-0.5)*0.5);
@@ -67,16 +67,14 @@
             textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. CÂY THÔNG & NGÔI SAO CHUẨN
-        const treeGroup = new THREE.Group();
+        // 2. CÂY THÔNG HẠT 3D - BUNG XÒE
         const maxPoints = 4000;
         const curveGeo = new THREE.BufferGeometry();
-        const curvePos = new Float32Array(maxPoints * 3);
-        curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
-        const line = new THREE.Line(curveGeo, new THREE.LineBasicMaterial({ color: 0xff1493, transparent: true }));
+        const treePos = new Float32Array(maxPoints * 3);
+        const targetPos = new Float32Array(maxPoints * 3); // Vị trí khi bung xòe
+        curveGeo.setAttribute('position', new THREE.BufferAttribute(treePos, 3));
         const glow = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.2, transparent: true }));
-        treeGroup.add(line); treeGroup.add(glow);
-        scene.add(treeGroup); line.visible = false; glow.visible = false;
+        scene.add(glow); glow.visible = false;
 
         function createStarShape() {
             const shape = new THREE.Shape();
@@ -89,51 +87,51 @@
             return new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide }));
         }
         const star = createStarShape();
-        star.position.set(0, 7.2, 0); star.visible = false; treeGroup.add(star);
+        star.position.set(0, 7.2, 0); star.visible = false; scene.add(star);
 
-        // 3. HỘP QUÀ XỊN
+        // 3. HỘP QUÀ
         const giftGroup = new THREE.Group(); scene.add(giftGroup);
         const gifts = [];
-        const msgs = ["Giáng sinh ấm áp!", "Hạnh phúc đong đầy!", "Vạn sự như ý!", "Luôn luôn mỉm cười!", "Thành công rực rỡ!"];
+        const msgs = ["Giáng sinh ấm áp!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn mỉm cười!", "Thành công!"];
         for(let i=0; i<5; i++) {
             const g = new THREE.Group();
             const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff}));
-            const ribbonV = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.3, 0.3), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            const ribbonH = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.1, 0.3), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            g.add(box); g.add(ribbonV); g.add(ribbonH);
+            const rib = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.3, 0.3), new THREE.MeshBasicMaterial({color: 0xffffff}));
+            g.add(box); g.add(rib);
             g.position.set((Math.random()-0.5)*20, (Math.random()-0.5)*15, (Math.random()-0.5)*20);
             g.visible = false; giftGroup.add(g); gifts.push(g);
         }
 
-        // 4. TUYẾT 3D CHUẨN
+        // 4. TUYẾT 3D
         const snowGeo = new THREE.BufferGeometry();
         const snowP = new Float32Array(8000 * 3);
         for(let i=0; i<24000; i++) snowP[i] = (Math.random()-0.5)*100;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowP, 3));
-        const snowMesh = new THREE.Points(snowGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1}));
-        scene.add(snowMesh);
+        scene.add(new THREE.Points(snowGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1})));
 
-        let exploded = false;
+        let isExploded = false;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
         function handle(x, y) {
             mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
             raycaster.setFromCamera(mouse, camera);
-            if(stage === 2 && !exploded) {
-                const hits = raycaster.intersectObjects(treeGroup.children, true);
-                if(hits.length > 0) exploded = true;
-            } else if(exploded) {
-                const hits = raycaster.intersectObjects(giftGroup.children, true);
+            if(stage === 2) {
+                const hits = raycaster.intersectObject(glow);
                 if(hits.length > 0) {
-                    let o = hits[0].object; while(o.parent !== giftGroup) o = o.parent;
-                    document.getElementById('messageText').innerText = msgs[gifts.indexOf(o)];
-                    document.getElementById('messageBox').style.display = 'block';
+                    isExploded = !isExploded; // TOGGLE: Bấm phát bung, bấm phát thu
+                }
+                if(isExploded) {
+                    const giftHits = raycaster.intersectObjects(giftGroup.children, true);
+                    if(giftHits.length > 0) {
+                        let o = giftHits[0].object; while(o.parent !== giftGroup) o = o.parent;
+                        document.getElementById('messageText').innerText = msgs[gifts.indexOf(o)];
+                        document.getElementById('messageBox').style.display = 'block';
+                    }
                 }
             }
         }
         window.addEventListener('click', (e) => handle(e.clientX, e.clientY));
-        window.addEventListener('touchstart', (e) => handle(e.touches[0].clientX, e.touches[0].clientY));
 
         function closeMessageBox() { document.getElementById('messageBox').style.display = 'none'; }
 
@@ -144,33 +142,44 @@
                 timer++;
                 if (timer % 10 === 0 && charIndex <= fullText.length) updateText(fullText.substring(0, charIndex++));
                 if (charIndex > fullText.length && timer > 220) stage = 1;
-            } else if (stage === 1) { // CHỮ NỔ TUNG
+            } else if (stage === 1) { // NỔ CHỮ
                 const p = textParticlesGeo.attributes.position.array;
                 for(let i=0; i<p.length; i++) p[i] += textVelocities[i] * 4;
                 textParticlesGeo.attributes.position.needsUpdate = true;
                 textMat.opacity -= 0.03;
-                if(textMat.opacity <= 0) { stage = 2; line.visible = true; glow.visible = true; }
+                if(textMat.opacity <= 0) { stage = 2; glow.visible = true; }
             } else if (stage === 2) {
-                treeGroup.rotation.y += 0.015;
+                glow.rotation.y += 0.01;
                 if(counter < maxPoints) {
-                    for(let i=0; i<10; i++) {
+                    for(let i=0; i<15; i++) {
                         if(counter < maxPoints) {
                             const t = counter/maxPoints, a = 0.5*counter, r = 5*(1-t), y = t*13-6.5;
-                            curvePos[counter*3] = Math.cos(a)*r; curvePos[counter*3+1] = y; curvePos[counter*3+2] = Math.sin(a)*r;
+                            treePos[counter*3] = Math.cos(a)*r; treePos[counter*3+1] = y; treePos[counter*3+2] = Math.sin(a)*r;
+                            targetPos[counter*3] = (Math.random()-0.5)*30; targetPos[counter*3+1] = (Math.random()-0.5)*30; targetPos[counter*3+2] = (Math.random()-0.5)*30;
                             counter++;
                         }
                     }
                     curveGeo.attributes.position.needsUpdate = true;
                 } else star.visible = true;
 
-                if(exploded) {
-                    treeGroup.scale.lerp(new THREE.Vector3(8, 8, 8), 0.04);
-                    line.material.opacity = glow.material.opacity = Math.max(0, line.material.opacity - 0.02);
-                    gifts.forEach(g => { g.visible = true; g.rotation.y += 0.02; g.position.y += Math.sin(Date.now()*0.002 + gifts.indexOf(g))*0.02; });
+                // HIỆU ỨNG BUNG XÒE / THU LẠI
+                const p = curveGeo.attributes.position.array;
+                for(let i=0; i<maxPoints; i++) {
+                    const curX = p[i*3], curY = p[i*3+1], curZ = p[i*3+2];
+                    const tX = isExploded ? targetPos[i*3] : (Math.cos(0.5*i)*5*(1-i/maxPoints));
+                    const tY = isExploded ? targetPos[i*3+1] : (i/maxPoints*13-6.5);
+                    const tZ = isExploded ? targetPos[i*3+2] : (Math.sin(0.5*i)*5*(1-i/maxPoints));
+                    p[i*3] += (tX - curX) * 0.05; p[i*3+1] += (tY - curY) * 0.05; p[i*3+2] += (tZ - curZ) * 0.05;
                 }
+                curveGeo.attributes.position.needsUpdate = true;
+
+                gifts.forEach(g => { 
+                    g.visible = isExploded; g.rotation.y += 0.02; 
+                });
+                star.visible = !isExploded && counter >= maxPoints;
             }
             const sp = snowGeo.attributes.position.array;
-            for(let i=1; i<sp.length; i+=3) { sp[i] -= 0.2; if(sp[i] < -50) sp[i] = 50; }
+            for(let i=1; i<sp.length; i+=3) { sp[i] -= 0.15; if(sp[i] < -50) sp[i] = 50; }
             snowGeo.attributes.position.needsUpdate = true;
             renderer.render(scene, camera);
         }
