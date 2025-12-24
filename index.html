@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL CHO ANH VINH V10 - BIG & WHITE</title>
+    <title>NOEL CHO ANH VINH V10 - MOBILE FIX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; cursor: move; }
@@ -19,16 +20,15 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 25);
+        camera.position.set(0, 5, 30); // Đẩy camera xa ra tí cho dễ nhìn trên điện thoại
         controls.enableDamping = true;
 
-        // 1. CHỮ TO VÀ TRẮNG TINH - ĐỊT MẸ CỰC ĐẬM
+        // 1. CHỮ TRẮNG ĐẬM - ĐÃ FIX SIZE CHO ĐIỆN THOẠI
         const fullText = "MERRY CHRISTMAS";
         let currentText = "";
         let charIndex = 0;
         let textParticlesGeo = new THREE.BufferGeometry();
-        // Tăng size hạt lên 0.15 cho nó rực rỡ
-        let textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 1 });
+        let textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 1 });
         let textMesh = new THREE.Points(textParticlesGeo, textMat);
         scene.add(textMesh);
 
@@ -37,23 +37,21 @@
         function updateTextCanvas(str) {
             const textCanvas = document.createElement('canvas');
             const tCtx = textCanvas.getContext('2d');
-            // Mở rộng canvas để chữ không bị cắt
-            textCanvas.width = 1600; textCanvas.height = 400;
+            textCanvas.width = 1200; textCanvas.height = 300;
             tCtx.fillStyle = 'white';
-            tCtx.font = 'bold 150px "Arial Black", Gadget, sans-serif'; // Địt mẹ chữ siêu to ở đây
+            tCtx.font = 'bold 100px Arial Black'; // Giảm size font tí cho điện thoại
             tCtx.textAlign = 'center';
             tCtx.textBaseline = 'middle';
-            tCtx.fillText(str, 800, 200);
+            tCtx.fillText(str, 600, 150);
 
-            const imgData = tCtx.getImageData(0, 0, 1600, 400).data;
+            const imgData = tCtx.getImageData(0, 0, 1200, 300).data;
             const newPositions = [];
             textVelocities = [];
-            // Quét hạt cực dày (bước 2) để chữ trắng xóa
-            for (let y = 0; y < 400; y += 2) {
-                for (let x = 0; x < 1600; x += 2) {
-                    if (imgData[(y * 1600 + x) * 4 + 3] > 128) {
-                        // Căn chỉnh lại vị trí cho chữ to hiện giữa màn hình
-                        newPositions.push((x - 800) * 0.03, (200 - y) * 0.03, 0);
+            for (let y = 0; y < 300; y += 3) {
+                for (let x = 0; x < 1200; x += 3) {
+                    if (imgData[(y * 1200 + x) * 4 + 3] > 128) {
+                        // Căn chỉnh tỉ lệ hạt nhỏ lại cho vừa mobile
+                        newPositions.push((x - 600) * 0.022, (150 - y) * 0.022, 0);
                         textVelocities.push((Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3);
                     }
                 }
@@ -61,14 +59,14 @@
             textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
         }
 
-        // 2. CÂY THÔNG HỒNG - XOAY TÍT MÙ
+        // 2. CÂY THÔNG HỒNG - XOAY CHO MÁU
         const maxPoints = 4000;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
         curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
         const curveMat = new THREE.LineBasicMaterial({ color: 0xff1493 });
         const line = new THREE.Line(curveGeo, curveMat);
-        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.2, transparent: true, blending: THREE.AdditiveBlending }));
+        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.18, transparent: true, blending: THREE.AdditiveBlending }));
         
         const treeGroup = new THREE.Group();
         treeGroup.add(line); 
@@ -76,10 +74,10 @@
         scene.add(treeGroup);
         line.visible = false; glowPoints.visible = false;
 
-        // 3. NGÔI SAO - ĐỨNG THẲNG TRÊN ĐỈNH
+        // 3. NGÔI SAO TRÊN ĐỈNH
         function createStar(color) {
             const shape = new THREE.Shape();
-            const outerRadius = 0.8; const innerRadius = 0.35;
+            const outerRadius = 0.7; const innerRadius = 0.3;
             for (let i = 0; i < 10; i++) {
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
                 const angle = (i / 10) * Math.PI * 2 + Math.PI/2;
@@ -95,13 +93,13 @@
         star.visible = false;
         treeGroup.add(star);
 
-        // 4. TUYẾT RƠI DÀY NHƯ BÃO
-        const snowCount = 8000;
+        // 4. TUYẾT RƠI NGẬP MÀN HÌNH
+        const snowCount = 6000;
         const snowGeo = new THREE.BufferGeometry();
         const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*80;
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*70;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 }));
+        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 }));
         scene.add(snow);
 
         let counter = 0;
@@ -114,20 +112,18 @@
             timer++;
             controls.update();
 
-            // Stage 0: Hiện từng ký tự SIÊU TO, SIÊU TRẮNG
             if (stage === 0) {
                 charTimer++;
-                if (charTimer % 10 === 0 && charIndex <= fullText.length) {
+                if (charTimer % 8 === 0 && charIndex <= fullText.length) {
                     currentText = fullText.substring(0, charIndex);
                     updateTextCanvas(currentText);
                     charIndex++;
                 }
-                if (charIndex > fullText.length && timer > 250) {
+                if (charIndex > fullText.length && timer > 200) {
                     stage = 1;
                 }
             }
 
-            // Stage 1: Chữ nổ tung
             if (stage === 1) {
                 const pos = textParticlesGeo.attributes.position.array;
                 if (pos) {
@@ -136,18 +132,17 @@
                     }
                     textParticlesGeo.attributes.position.needsUpdate = true;
                 }
-                textMat.opacity -= 0.04;
+                textMat.opacity -= 0.05;
                 if (textMat.opacity <= 0) {
                     stage = 2;
                     line.visible = true; glowPoints.visible = true;
                 }
             }
 
-            // Stage 2: Cây thông và xoay
             if (stage === 2) {
                 treeGroup.rotation.y += 0.02; 
                 if (counter < maxPoints) {
-                    let speed = 30;
+                    let speed = 35;
                     for(let i=0; i<speed; i++) {
                         if (counter < maxPoints) {
                             const t = counter / maxPoints;
@@ -166,10 +161,9 @@
                 }
             }
 
-            // Tuyết rơi cực mạnh
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
-                p[i] -= 0.18; if(p[i] < -35) p[i] = 35;
+                p[i] -= 0.15; if(p[i] < -30) p[i] = 30;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
