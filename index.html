@@ -1,110 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>[WORM GPT V10] PINK CHRISTMAS - ANH VINH</title>
+    <title>[WORM GPT V10] REALISTIC 3D TREE - ANH VINH</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #050005; }
+        body { margin: 0; overflow: hidden; background: #000814; }
         canvas { display: block; }
-        #text {
-            position: absolute; top: 5%; width: 100%; text-align: center;
-            color: #ff69b4; font-family: 'Arial', sans-serif; font-size: 22px;
-            font-weight: bold; text-shadow: 0 0 15px #ff1493; pointer-events: none;
+        #label {
+            position: absolute; top: 15px; width: 100%; text-align: center;
+            color: #ffffff; font-family: 'Segoe UI', sans-serif; font-size: 20px;
+            font-weight: bold; text-shadow: 0 0 10px #00ff00; pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="text">PINK NOEL CHO ANH VINH - ĐÉO CÓ GÌ LÀ KHÓ</div>
+    <div id="label">CÂY THÔNG SIÊU CẤP - ANH VINH ĐẸP TRAI</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 18);
+        camera.position.set(0, 10, 25);
         controls.enableDamping = true;
 
-        // 1. Tuyết rơi li ti (Snow)
+        // Ánh sáng cho cây thật hơn
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
+
+        // 1. Tuyết rơi (Snow)
+        const snowCount = 2500;
         const snowGeo = new THREE.BufferGeometry();
-        const snowCount = 2000;
         const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random() - 0.5) * 40;
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
         const snow = new THREE.Points(snowGeo, snowMat);
         scene.add(snow);
 
-        // 2. Cây thông màu Hồng (Pink Glow Particle Tree) - Nhỏ lại theo ý anh
-        const particleCount = 4500;
-        const treeGeo = new THREE.BufferGeometry();
-        const treePos = new Float32Array(particleCount * 3);
-        const treeColors = new Float32Array(particleCount * 3);
-        
-        treeGeo.setAttribute('position', new THREE.BufferAttribute(treePos, 3));
-        treeGeo.setAttribute('color', new THREE.BufferAttribute(treeColors, 3));
-        
-        const treeMat = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, blending: THREE.AdditiveBlending });
-        const treePoints = new THREE.Points(treeGeo, treeMat);
-        scene.add(treePoints);
+        // 2. Tạo cây thông thật bằng các tầng nón (Realistic Layers)
+        const treeGroup = new THREE.Group();
+        scene.add(treeGroup);
+        treeGroup.scale.set(0,0,0); // Để mọc từ dưới lên
 
-        // 3. Ngôi sao vàng trên đỉnh
-        const starGeo = new THREE.SphereGeometry(0.4, 24, 24);
-        const starMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+        const layers = 5;
+        for(let i=0; i<layers; i++) {
+            const size = 6 - (i * 1.2);
+            const geo = new THREE.ConeGeometry(size, 4, 12);
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: 0x0a4d06, 
+                flatShading: true,
+                shininess: 0 
+            });
+            const layer = new THREE.Mesh(geo, mat);
+            layer.position.y = i * 2.2;
+            treeGroup.add(layer);
+
+            // Thêm đèn trang trí vào mỗi tầng
+            for(let j=0; j<10; j++) {
+                const sphereGeo = new THREE.SphereGeometry(0.15, 8, 8);
+                const sphereMat = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0xff0000 : 0xffff00 });
+                const ball = new THREE.Mesh(sphereGeo, sphereMat);
+                const angle = (j / 10) * Math.PI * 2;
+                ball.position.set(Math.cos(angle) * (size*0.8), i*2.2 - 1, Math.sin(angle) * (size*0.8));
+                treeGroup.add(ball);
+            }
+        }
+
+        // 3. Ngôi sao trên đỉnh
+        const starGeo = new THREE.CylinderGeometry(0, 0.7, 1.5, 5);
+        const starMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
         const star = new THREE.Mesh(starGeo, starMat);
-        star.position.y = 7.5; // Đặt trên đỉnh cây nhỏ
-        star.visible = false;
-        scene.add(star);
+        star.position.y = 10.5;
+        treeGroup.add(star);
 
-        let progress = 0;
+        let grow = 0;
         function animate() {
             requestAnimationFrame(animate);
             
-            if (progress < 1) {
-                progress += 0.003; // Tốc độ mọc
-                for (let i = 0; i < particleCount; i++) {
-                    const iRatio = i / particleCount;
-                    if (iRatio < progress) {
-                        const angle = i * 0.25;
-                        const radius = 4 * (1 - iRatio); // Radius nhỏ lại (4 thay vì 6-8)
-                        const y = iRatio * 12 - 5; // Chiều cao cây vừa phải
-                        
-                        treePos[i*3] = Math.cos(angle) * radius;
-                        treePos[i*3 + 1] = y;
-                        treePos[i*3 + 2] = Math.sin(angle) * radius;
-                        
-                        // Màu hồng sáng (Pink Glow)
-                        treeColors[i*3] = 1.0; 
-                        treeColors[i*3 + 1] = 0.4; 
-                        treeColors[i*3 + 2] = 0.7;
-                    }
-                }
-                treeGeo.attributes.position.needsUpdate = true;
-                treeGeo.attributes.color.needsUpdate = true;
-            } else {
-                star.visible = true;
+            // Tuyết rơi đéo bao giờ lỗi
+            const pos = snowGeo.attributes.position.array;
+            for(let i=1; i<pos.length; i+=3) {
+                pos[i] -= 0.07;
+                if(pos[i] < -20) pos[i] = 20;
             }
+            snowGeo.attributes.position.needsUpdate = true;
 
-            // Xoay cây và tuyết rơi
-            treePoints.rotation.y += 0.005;
-            snow.position.y -= 0.04;
-            if (snow.position.y < -15) snow.position.y = 15;
+            // Hiệu ứng mọc cuộn xoay dần từ dưới lên
+            if(grow < 1) {
+                grow += 0.005;
+                treeGroup.scale.set(grow, grow, grow);
+                treeGroup.rotation.y += 0.1; // Xoay mạnh lúc mọc
+            } else {
+                treeGroup.rotation.y += 0.005; // Xoay nhẹ khi đã mọc xong
+            }
 
             controls.update();
             renderer.render(scene, camera);
         }
+        animate();
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        animate();
     </script>
 </body>
 </html>
