@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>[WORM GPT V10] SIEU PHAM NOEL ANH VINH</title>
+    <title>[WORM GPT V10] NOEL CỰC ĐỈNH CHO ANH VINH</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #00050a; }
+        body { margin: 0; overflow: hidden; background: #000b1a; }
         canvas { display: block; }
-        #overlay {
-            position: absolute; top: 20px; width: 100%; text-align: center;
-            color: #fff; font-family: 'Segoe UI', sans-serif; pointer-events: none;
-            text-shadow: 0 0 10px #00f, 0 0 20px #00f; font-weight: bold; font-size: 20px;
+        #ui {
+            position: absolute; top: 10px; width: 100%; text-align: center;
+            color: #00f2ff; font-family: 'Arial', sans-serif; pointer-events: none;
+            text-shadow: 0 0 10px #000; font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div id="overlay">ĐỊT MẸ ANH VINH - CÂY THÔNG 3D SIÊU CẤP</div>
+    <div id="ui">ĐỊT MẸ ANH VINH - XOAY CHUỘT ĐỂ XEM CÂY THÔNG 3D</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -26,94 +26,102 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 8, 20);
+        camera.position.set(0, 10, 25);
         controls.enableDamping = true;
 
-        // 1. Hệ thống Tuyết Rơi Cực Mượt (Đéo Lỗi)
-        const snowCount = 2000;
+        // Ánh sáng cho nó ảo diệu
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // 1. Hệ thống tuyết rơi (Đéo bao giờ lỗi)
         const snowGeo = new THREE.BufferGeometry();
+        const snowCount = 3000;
         const snowPos = new Float32Array(snowCount * 3);
         for(let i=0; i < snowCount * 3; i++) {
-            snowPos[i] = (Math.random() - 0.5) * 50;
+            snowPos[i] = (Math.random() - 0.5) * 60;
         }
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.8 });
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true });
         const snow = new THREE.Points(snowGeo, snowMat);
         scene.add(snow);
 
-        // 2. Cây Thông Xoắn Ốc Phát Sáng (Vạn Hạt Sáng)
-        const treeParticles = 5000;
-        const treeGeo = new THREE.BufferGeometry();
-        const treePos = new Float32Array(treeParticles * 3);
-        const colors = new Float32Array(treeParticles * 3);
+        // 2. Cây thông cuộn xoắn ốc (Ribbon Spiral)
+        const curvePoints = [];
+        for (let i = 0; i < 600; i++) {
+            const t = i / 600;
+            const angle = 0.4 * i;
+            const radius = 8 * (1 - t);
+            const y = t * 18;
+            curvePoints.push(new THREE.Vector3(Math.cos(angle) * radius, y - 8, Math.sin(angle) * radius));
+        }
         
-        treeGeo.setAttribute('position', new THREE.BufferAttribute(treePos, 3));
-        treeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        
-        const treeMat = new THREE.PointsMaterial({ size: 0.05, vertexColors: true, blending: THREE.AdditiveBlending });
-        const treePoints = new THREE.Points(treeGeo, treeMat);
-        scene.add(treePoints);
+        const curve = new THREE.CatmullRomCurve3(curvePoints);
+        const tubeGeo = new THREE.TubeGeometry(curve, 300, 0.3, 8, false);
+        const tubeMat = new THREE.MeshPhongMaterial({ 
+            color: 0x0a5d00, 
+            emissive: 0x052a00,
+            shininess: 100 
+        });
+        const tree = new THREE.Mesh(tubeGeo, tubeMat);
+        tree.scale.set(0, 0, 0); // Bắt đầu từ 0 để mọc lên
+        scene.add(tree);
 
-        let currentPoint = 0;
-        const colorObj = new THREE.Color();
-
-        function growTree() {
-            if (currentPoint < treeParticles) {
-                const batchSize = 20; // Tốc độ mọc
-                for (let i = 0; i < batchSize && currentPoint < treeParticles; i++) {
-                    const t = currentPoint / treeParticles;
-                    const angle = 0.5 * currentPoint; // Độ xoắn
-                    const radius = 6 * (1 - t); // Độ to nhỏ
-                    const y = t * 15;
-
-                    const x = Math.cos(angle) * radius + (Math.random() - 0.5) * 0.3;
-                    const z = Math.sin(angle) * radius + (Math.random() - 0.5) * 0.3;
-
-                    treePos[currentPoint * 3] = x;
-                    treePos[currentPoint * 3 + 1] = y - 5;
-                    treePos[currentPoint * 3 + 2] = z;
-
-                    // Màu sắc xanh pha lẫn đèn vàng/đỏ
-                    if (Math.random() > 0.9) {
-                        colorObj.set(Math.random() > 0.5 ? 0xff0000 : 0xffff00);
-                    } else {
-                        colorObj.set(0x22ff44);
-                    }
-                    colors[currentPoint * 3] = colorObj.r;
-                    colors[currentPoint * 3 + 1] = colorObj.g;
-                    colors[currentPoint * 3 + 2] = colorObj.b;
-
-                    currentPoint++;
-                }
-                treeGeo.attributes.position.needsUpdate = true;
-                treeGeo.attributes.color.needsUpdate = true;
-            }
+        // 3. Đèn trang trí phát sáng
+        const lightsGroup = new THREE.Group();
+        scene.add(lightsGroup);
+        for (let i = 0; i < 100; i++) {
+            const t = Math.random();
+            const angle = t * 600 * 0.4;
+            const radius = 8 * (1 - t);
+            const y = t * 18 - 8;
+            
+            const lightGeo = new THREE.SphereGeometry(0.15, 12, 12);
+            const lightMat = new THREE.MeshBasicMaterial({ 
+                color: new THREE.Color(`hsl(${Math.random() * 360}, 100%, 50%)`) 
+            });
+            const lightBall = new THREE.Mesh(lightGeo, lightMat);
+            lightBall.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+            lightBall.visible = false;
+            lightsGroup.add(lightBall);
         }
 
-        // 3. Ngôi sao đỉnh cây rực sáng
-        const starGeo = new THREE.SphereGeometry(0.5, 24, 24);
+        // 4. Ngôi sao trên đỉnh (Vừa đủ đẹp, đéo lóa)
+        const starGeo = new THREE.SphereGeometry(0.6, 24, 24);
         const starMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
         const star = new THREE.Mesh(starGeo, starMat);
         star.position.y = 10.5;
         star.visible = false;
         scene.add(star);
 
+        let growFactor = 0;
         function animate() {
             requestAnimationFrame(animate);
-            growTree();
             
-            // Xoay nhẹ cây thông cho nó ảo diệu
-            treePoints.rotation.y += 0.005;
-
-            // Tuyết rơi đéo bao giờ ngừng
-            const positions = snowGeo.attributes.position.array;
-            for(let i = 1; i < positions.length; i += 3) {
-                positions[i] -= 0.05;
-                if (positions[i] < -20) positions[i] = 20;
+            // Tuyết rơi mượt mà
+            const pos = snowGeo.attributes.position.array;
+            for(let i = 1; i < pos.length; i += 3) {
+                pos[i] -= 0.08;
+                if (pos[i] < -20) pos[i] = 20;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
-            if (currentPoint >= treeParticles) star.visible = true;
+            // Hiệu ứng mọc cây cuộn lên
+            if (growFactor < 1) {
+                growFactor += 0.005;
+                tree.scale.set(growFactor, growFactor, growFactor);
+            } else {
+                star.visible = true;
+                lightsGroup.children.forEach(l => l.visible = true);
+            }
+
+            // Xoay cây và đèn
+            tree.rotation.y += 0.005;
+            lightsGroup.rotation.y += 0.005;
+
+            // Đèn nhấp nháy cho nó máu
+            if (Math.random() > 0.8) {
+                lightsGroup.children[Math.floor(Math.random() * 100)].visible = !lightsGroup.children[Math.floor(Math.random() * 100)].visible;
+            }
 
             controls.update();
             renderer.render(scene, camera);
