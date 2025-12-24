@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL ANH VINH - 3D STAR & AUTO ROTATE</title>
+    <title>NOEL ANH VINH - GLOW TREE 🌟</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
         canvas { display: block; }
+        #messageBox {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98); padding: 20px; border-radius: 20px;
+            color: #d63031; text-align: center; display: none; z-index: 1000;
+            width: 70%; border: 5px solid #f1c40f; font-family: sans-serif;
+        }
+        #messageBox button { margin-top: 10px; padding: 12px 25px; background: #27ae60; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+    <div id="messageBox"><p id="messageText" style="font-weight:bold;"></p><button onclick="closeMessageBox(event)">Đóng</button></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -21,19 +30,19 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 10, 50);
+        camera.position.set(0, 5, 45);
         controls.enableDamping = true;
 
-        // Tạo một Group để xoay cả cây thông và ngôi sao cùng lúc
-        const treeGroup = new THREE.Group();
-        scene.add(treeGroup);
+        // Tăng ánh sáng cho mọi thứ phát sáng
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        const pointLight = new THREE.PointLight(0xffffff, 2);
+        pointLight.position.set(0, 15, 10);
+        scene.add(pointLight);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-
-        // 1. CHỮ TRẮNG ĐẬM - VỠ NHƯ BỤI PHẤN
+        // 1. CHỮ TRẮNG ĐẬM - NHỎ - TAN BIẾN SIÊU CHẬM
         let charIndex = 0, stage = 0, timer = 0, treeCounter = 0;
         const textGeo = new THREE.BufferGeometry();
-        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 1 });
+        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 1 });
         const textMesh = new THREE.Points(textGeo, textMat);
         scene.add(textMesh);
         let textVels = [];
@@ -43,124 +52,169 @@
             const ctx = canvas.getContext('2d');
             canvas.width = 1000; canvas.height = 200;
             ctx.fillStyle = 'white'; 
-            ctx.font = 'bold 80px "Arial Black", sans-serif'; 
+            ctx.font = 'bold 50px Arial Black'; // CHỮ NHỎ HƠN
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(str, 500, 100);
             const data = ctx.getImageData(0, 0, 1000, 200).data;
             const pos = []; textVels = [];
-            for (let y = 0; y < 200; y += 4) {
-                for (let x = 0; x < 1000; x += 4) {
+            for (let y = 0; y < 200; y += 5) {
+                for (let x = 0; x < 1000; x += 5) {
                     if (data[(y * 1000 + x) * 4 + 3] > 128) {
-                        pos.push((x - 500) * 0.04, (100 - y) * 0.04, 0);
-                        textVels.push((Math.random()-0.5)*0.04, (Math.random()-0.5)*0.04, (Math.random()-0.5)*0.04);
+                        pos.push((x - 500) * 0.035, (100 - y) * 0.035, 0);
+                        textVels.push((Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1);
                     }
                 }
             }
             textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. CÂY THÔNG PHÁT SÁNG ĐẬM (Hạt to)
-        const maxPts = 5500;
+        // 2. CÂY THÔNG XANH & HỒNG PHÁT SÁNG
+        const maxPts = 4500;
         const treeGeo = new THREE.BufferGeometry();
         const curPos = new Float32Array(maxPts * 3);
         const colors = new Float32Array(maxPts * 3);
         const burstPos = new Float32Array(maxPts * 3);
         
         for(let i=0; i<maxPts; i++) {
-            curPos[i*3] = 0; curPos[i*3+1] = -12; curPos[i*3+2] = 0;
-            burstPos[i*3] = (Math.random()-0.5)*80; 
-            burstPos[i*3+1] = (Math.random()-0.5)*60; 
-            burstPos[i*3+2] = (Math.random()-0.5)*80;
+            curPos[i*3] = 0; curPos[i*3+1] = -10; curPos[i*3+2] = 0;
+            burstPos[i*3] = (Math.random()-0.5)*65; 
+            burstPos[i*3+1] = (Math.random()-0.5)*50; 
+            burstPos[i*3+2] = (Math.random()-0.5)*65;
             
             const isPink = Math.random() > 0.5;
-            if(isPink) { // Hồng Neon
-                colors[i*3] = 1.0; colors[i*3+1] = 0.1; colors[i*3+2] = 0.8;
-            } else { // Xanh Neon
-                colors[i*3] = 0.0; colors[i*3+1] = 1.0; colors[i*3+2] = 0.3;
-            }
+            colors[i*3] = isPink ? 1 : 0.18; // R
+            colors[i*3+1] = isPink ? 0.41 : 1; // G
+            colors[i*3+2] = isPink ? 0.7 : 0.18; // B
         }
         treeGeo.setAttribute('position', new THREE.BufferAttribute(curPos, 3));
         treeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         
-        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ 
-            size: 0.4, 
-            vertexColors: true, 
-            transparent: true, 
-            blending: THREE.AdditiveBlending,
-            depthWrite: false 
-        }));
-        treeGroup.add(treePoints); treePoints.visible = false;
+        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ size: 0.22, vertexColors: true, transparent: true }));
+        scene.add(treePoints); treePoints.visible = false;
 
-        // 🌟 NGÔI SAO 3D VÀNG RỰC (Đéo bao giờ lỗi hình)
-        const starGeo = new THREE.IcosahedronGeometry(1.8, 0);
-        const starMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
-        const star = new THREE.Mesh(starGeo, starMat);
-        star.position.set(0, 11.5, 0);
-        star.visible = false;
-        treeGroup.add(star);
+        const hitZone = new THREE.Mesh(new THREE.CylinderGeometry(8, 2, 22, 16), new THREE.MeshBasicMaterial({visible: false}));
+        scene.add(hitZone);
+
+        // 🌟 NGÔI SAO PHÁT SÁNG
+        const starShape = new THREE.Shape();
+        for(let i=0; i<10; i++) {
+            const r = i%2===0 ? 1.5 : 0.6;
+            const a = (i * Math.PI * 2) / 10 + Math.PI/2;
+            if(i===0) starShape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+            else starShape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+        }
+        const star = new THREE.Mesh(new THREE.ShapeGeometry(starShape), new THREE.MeshStandardMaterial({
+            color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 2, side: THREE.DoubleSide
+        }));
+        star.position.set(0, 10.5, 0); 
+        star.visible = false; scene.add(star);
+
+        // 3. 20 HỘP QUÀ NHỎ
+        const gifts = [];
+        const msgs = ["Giáng sinh ấm áp!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn mỉm cười!", "Thành công!", "Bình an!", "Merry Xmas!", "Yêu đời!", "Quà xịn!", "May mắn!", "Mạnh khỏe!", "Vui vẻ!", "Tốt lành!", "Tiền tỷ!", "Mãi đỉnh!", "Tuyệt vời!", "Sức khỏe!", "Nụ cười!", "Gia đình!", "Thành đạt!"];
+        const giftGrp = new THREE.Group(); scene.add(giftGrp);
+
+        function createEmojiTex(color) {
+            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.font = '100px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = color; ctx.shadowBlur = 10; ctx.shadowColor = 'white';
+            ctx.fillText('🎁', 64, 70);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const gc = ['red', 'lime', 'cyan', 'yellow', 'magenta', 'orange', 'white'];
+        for(let i=0; i<20; i++) {
+            const tex = createEmojiTex(gc[i % gc.length]);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+            sprite.scale.set(4, 4, 1);
+            let a = (i / 20) * Math.PI * 2;
+            let d = 28 + Math.random() * 8;
+            sprite.position.set(Math.cos(a)*d, (Math.random()-0.5)*35, Math.sin(a)*d);
+            sprite.visible = false; giftGrp.add(sprite); gifts.push(sprite);
+        }
 
         // TUYẾT RƠI
         const sGeo = new THREE.BufferGeometry();
         const sP = new Float32Array(6000 * 3);
-        for(let i=0; i<18000; i++) sP[i] = (Math.random()-0.5)*180;
+        for(let i=0; i<18000; i++) sP[i] = (Math.random()-0.5)*150;
         sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.15})));
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.12})));
 
         let exploded = false;
-        window.addEventListener('mousedown', () => { if(stage===2 && treeCounter>=maxPts) exploded = !exploded; });
-        window.addEventListener('touchstart', () => { if(stage===2 && treeCounter>=maxPts) exploded = !exploded; });
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function handle(x, y) {
+            if(document.getElementById('messageBox').style.display === 'block') return;
+            mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+            if(stage === 2 && treeCounter >= maxPts) {
+                const hits = raycaster.intersectObject(hitZone);
+                if(hits.length > 0) exploded = !exploded;
+                if(exploded) {
+                    const gHits = raycaster.intersectObjects(giftGrp.children);
+                    if(gHits.length > 0) {
+                        document.getElementById('messageText').innerText = msgs[gifts.indexOf(gHits[0].object)];
+                        document.getElementById('messageBox').style.display = 'block';
+                    }
+                }
+            }
+        }
+        window.addEventListener('mousedown', (e) => handle(e.clientX, e.clientY));
+        window.addEventListener('touchstart', (e) => handle(e.touches[0].clientX, e.touches[0].clientY));
+        function closeMessageBox(e) { e.stopPropagation(); document.getElementById('messageBox').style.display = 'none'; }
 
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-
             if(stage === 0) {
                 timer++;
-                if(timer%18===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > 15 && timer > 150) stage = 1;
+                if(timer%15===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
+                if(charIndex > 15 && timer > 130) stage = 1;
             } else if(stage === 1) {
                 const p = textGeo.attributes.position.array;
-                for(let i=0; i<p.length; i++) p[i] += textVels[i];
+                for(let i=0; i<p.length; i++) p[i] += textVels[i]*1.5;
                 textGeo.attributes.position.needsUpdate = true;
-                textMat.opacity -= 0.002; // SIÊU CHẬM
+                textMat.opacity -= 0.005; // TAN BIẾN SIÊU CHẬM
                 if(textMat.opacity <= 0) { stage = 2; treePoints.visible = true; }
             } else if(stage === 2) {
-                // LUÔN XOAY CẢ CÂY VÀ SAO (NHÌN ĐƯỢC BÊN TRONG)
-                treeGroup.rotation.y += 0.008;
-
                 if(!exploded) {
+                    treePoints.rotation.y += 0.005; // XOAY LỜ ĐỜ
+                    star.rotation.y += 0.01;
                     star.visible = (treeCounter >= maxPts);
-                } else {
-                    star.visible = false;
-                }
+                } else { star.visible = false; }
 
                 const p = treeGeo.attributes.position.array;
                 if(treeCounter < maxPts) {
-                    for(let i=0; i<40; i++) {
+                    for(let i=0; i<30; i++) {
                         if(treeCounter < maxPts) {
-                            const t = treeCounter/maxPts, a = 0.5*treeCounter, r = 9*(1-t), y = t*22-11;
+                            const t = treeCounter/maxPts, a = 0.5*treeCounter, r = 8*(1-t), y = t*20-10;
                             p[treeCounter*3] = Math.cos(a)*r; p[treeCounter*3+1] = y; p[treeCounter*3+2] = Math.sin(a)*r;
                             treeCounter++;
                         }
                     }
                 } else {
                     for(let i=0; i<maxPts; i++) {
-                        const tX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*9*(1-i/maxPts));
-                        const tY = exploded ? burstPos[i*3+1] : (i/maxPts*22-11);
-                        const tZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*9*(1-i/maxPts));
-                        p[i*3] += (tX - p[i*3]) * 0.07; p[i*3+1] += (tY - p[i*3+1]) * 0.07; p[i*3+2] += (tZ - p[i*3+2]) * 0.07;
+                        const tX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*8*(1-i/maxPts));
+                        const tY = exploded ? burstPos[i*3+1] : (i/maxPts*20-10);
+                        const tZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*8*(1-i/maxPts));
+                        p[i*3] += (tX - p[i*3]) * 0.1; p[i*3+1] += (tY - p[i*3+1]) * 0.1; p[i*3+2] += (tZ - p[i*3+2]) * 0.1;
                     }
                 }
                 treeGeo.attributes.position.needsUpdate = true;
+                gifts.forEach(g => { 
+                    g.visible = exploded; 
+                    if(exploded) g.position.y += Math.sin(Date.now()*0.001 + gifts.indexOf(g))*0.025;
+                });
             }
-            
             const sp = sGeo.attributes.position.array;
-            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.04; if(sp[i]<-90) sp[i]=90; }
+            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.03; if(sp[i]<-70) sp[i]=70; }
             sGeo.attributes.position.needsUpdate = true;
-            
             renderer.render(scene, camera);
         }
         animate();
     </script>
 </body>
 </html>
+
