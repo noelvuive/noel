@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MERRY CHRISTMAS ANH VINH</title>
+    <title>NOEL CHO ANH VINH</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
-        canvas { display: block; }
+        canvas { display: block; cursor: move; }
     </style>
 </head>
 <body>
@@ -13,84 +13,102 @@
 
     <script>
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        camera.position.set(0, 5, 25);
+        // Đã mở lại xoay cho anh Vinh
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 5, 20);
+        controls.enableDamping = true;
 
-        // 1. TẠO CHỮ MERRY CHRISTMAS BẰNG HẠT (PARTICLES)
+        // 1. CHỮ MERRY CHRISTMAS NHỎ GỌN
         const textCanvas = document.createElement('canvas');
         const tCtx = textCanvas.getContext('2d');
         textCanvas.width = 1000; textCanvas.height = 200;
         tCtx.fillStyle = 'white';
-        tCtx.font = 'Bold 80px Arial';
+        tCtx.font = 'Bold 60px Arial'; // Chữ nhỏ lại xíu
         tCtx.textAlign = 'center';
         tCtx.fillText('MERRY CHRISTMAS', 500, 100);
 
         const imgData = tCtx.getImageData(0, 0, 1000, 200).data;
-        const textParticlesGeo = new THREE.BufferGeometry();
         const textPositions = [];
         const textVelocities = [];
 
-        for (let y = 0; y < 200; y += 4) {
-            for (let x = 0; x < 1000; x += 4) {
+        for (let y = 0; y < 200; y += 5) { // Thưa hạt ra cho nhẹ
+            for (let x = 0; x < 1000; x += 5) {
                 if (imgData[(y * 1000 + x) * 4 + 3] > 128) {
-                    textPositions.push((x - 500) * 0.04, (100 - y) * 0.04, 0);
-                    textVelocities.push((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2);
+                    textPositions.push((x - 500) * 0.025, (100 - y) * 0.025, 0); // Tỷ lệ chữ nhỏ lại
+                    textVelocities.push((Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1);
                 }
             }
         }
 
+        const textParticlesGeo = new THREE.BufferGeometry();
         textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(textPositions, 3));
-        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true });
         const textMesh = new THREE.Points(textParticlesGeo, textMat);
         scene.add(textMesh);
 
-        // 2. CÂY THÔNG HỒNG (CHỜ CHỮ TAN BIẾN XONG MỚI HIỆN)
-        const maxPoints = 2500;
+        // 2. CÂY THÔNG HỒNG (NHỎ LẠI THEO Ý ANH)
+        const maxPoints = 2000;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
         curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
         const curveMat = new THREE.LineBasicMaterial({ color: 0xff1493 });
         const line = new THREE.Line(curveGeo, curveMat);
-        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }));
+        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.12, transparent: true, blending: THREE.AdditiveBlending }));
         scene.add(line); scene.add(glowPoints);
         line.visible = false; glowPoints.visible = false;
 
-        // Ngôi sao thẳng đứng
-        const starGeo = new THREE.SphereGeometry(0.6, 16, 16);
-        const star = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: 0xffd700 }));
-        star.position.y = 10; star.visible = false;
+        // 3. NGÔI SAO 5 CÁNH THẲNG ĐỨNG
+        function createStar(color) {
+            const shape = new THREE.Shape();
+            const outerRadius = 0.5; const innerRadius = 0.2;
+            for (let i = 0; i < 10; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = (i / 10) * Math.PI * 2;
+                if (i === 0) shape.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+                else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+            }
+            const starGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.05, bevelEnabled: false });
+            const mesh = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: color }));
+            mesh.rotation.y = 0; // Đứng thẳng hướng về camera
+            return mesh;
+        }
+        const star = createStar(0xffd700);
+        star.position.set(0, 6.2, 0); // Đỉnh cây nhỏ
+        star.visible = false;
         scene.add(star);
 
-        // 3. TUYẾT RƠI
+        // 4. TUYẾT RƠI
         const snowGeo = new THREE.BufferGeometry();
-        const snowCount = 2000;
+        const snowCount = 1500;
         const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*50;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
         const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 }));
         scene.add(snow);
 
         let counter = 0;
-        let stage = 0; // 0: Hiện chữ, 1: Tan biến, 2: Cuộn cây
+        let stage = 0; 
         let timer = 0;
 
         function animate() {
             requestAnimationFrame(animate);
             timer++;
+            controls.update();
 
-            if (stage === 0 && timer > 120) stage = 1; // Sau 2 giây bắt đầu tan biến
+            if (stage === 0 && timer > 100) stage = 1; // 2s thì tan biến
 
             if (stage === 1) {
                 const pos = textParticlesGeo.attributes.position.array;
                 for (let i = 0; i < pos.length; i++) {
-                    pos[i] += textVelocities[i] * 2; // Bay vụn ra 3D
+                    pos[i] += textVelocities[i] * 3;
                 }
                 textParticlesGeo.attributes.position.needsUpdate = true;
-                textMat.opacity -= 0.01;
+                textMat.opacity -= 0.015;
                 if (textMat.opacity <= 0) {
                     stage = 2;
                     line.visible = true; glowPoints.visible = true;
@@ -98,13 +116,13 @@
             }
 
             if (stage === 2 && counter < maxPoints) {
-                let speed = 15;
+                let speed = 12;
                 for(let i=0; i<speed; i++) {
                     if (counter < maxPoints) {
                         const t = counter / maxPoints;
                         const angle = 0.4 * counter; 
-                        const radius = 8 * (1 - t);   
-                        const y = t * 18 - 9;         
+                        const radius = 5 * (1 - t); // Cây nhỏ lại (radius 5)
+                        const y = t * 12 - 6;      // Cao vừa phải (12)
                         curvePos[counter*3] = Math.cos(angle)*radius;
                         curvePos[counter*3+1] = y;
                         curvePos[counter*3+2] = Math.sin(angle)*radius;
@@ -116,20 +134,26 @@
                 star.visible = true;
             }
 
-            // Xoay cây và tuyết rơi
             if (stage === 2) {
                 line.rotation.y += 0.01;
                 glowPoints.rotation.y += 0.01;
             }
+            
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
-                p[i] -= 0.1; if(p[i] < -25) p[i] = 25;
+                p[i] -= 0.08; if(p[i] < -20) p[i] = 20;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
             renderer.render(scene, camera);
         }
         animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
