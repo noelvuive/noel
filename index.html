@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Noel Cho Anh Vinh - Bản 3D Đặc Biệt</title>
+    <title>MERRY CHRISTMAS ANH VINH</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; }
@@ -18,52 +18,37 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
         camera.position.set(0, 5, 25);
-        controls.enableDamping = true;
 
-        // 1. Tạo hệ thống tuyết
-        const snowGeo = new THREE.BufferGeometry();
-        const snowCount = 2000;
-        const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
-        snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 }));
-        scene.add(snow);
+        // 1. TẠO CHỮ MERRY CHRISTMAS BẰNG HẠT (PARTICLES)
+        const textCanvas = document.createElement('canvas');
+        const tCtx = textCanvas.getContext('2d');
+        textCanvas.width = 1000; textCanvas.height = 200;
+        tCtx.fillStyle = 'white';
+        tCtx.font = 'Bold 80px Arial';
+        tCtx.textAlign = 'center';
+        tCtx.fillText('MERRY CHRISTMAS', 500, 100);
 
-        // 2. Chữ MERRY CHRISTMAS tan biến kiểu 3D
-        let textParticles;
-        const loader = new THREE.FontLoader();
-        // Load font từ CDN để vẽ chữ 3D
-        loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
-            const textGeo = new THREE.TextGeometry('MERRY CHRISTMAS', {
-                font: font, size: 2.5, height: 0.2, curveSegments: 12
-            });
-            textGeo.center();
-            
-            // Chuyển chữ thành hệ thống hạt
-            const pts = textGeo.vertices || []; // Fallback cho bản cũ
-            const particlesGeo = new THREE.BufferGeometry();
-            const pCount = 3000;
-            const positions = new Float32Array(pCount * 3);
-            const destinations = new Float32Array(pCount * 3);
+        const imgData = tCtx.getImageData(0, 0, 1000, 200).data;
+        const textParticlesGeo = new THREE.BufferGeometry();
+        const textPositions = [];
+        const textVelocities = [];
 
-            for (let i = 0; i < pCount; i++) {
-                // Lấy điểm ngẫu nhiên trên mặt chữ
-                const p = textGeo.faces[Math.floor(Math.random() * textGeo.faces.length)];
-                const v = textGeo.vertices[p.a];
-                positions[i*3] = v.x; positions[i*3+1] = v.y; positions[i*3+2] = v.z;
-                // Đích đến khi tan biến (bay loạn xạ)
-                destinations[i*3] = (Math.random()-0.5)*100;
-                destinations[i*3+1] = (Math.random()-0.5)*100;
-                destinations[i*3+2] = (Math.random()-0.5)*100;
+        for (let y = 0; y < 200; y += 4) {
+            for (let x = 0; x < 1000; x += 4) {
+                if (imgData[(y * 1000 + x) * 4 + 3] > 128) {
+                    textPositions.push((x - 500) * 0.04, (100 - y) * 0.04, 0);
+                    textVelocities.push((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2);
+                }
             }
-            particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            textParticles = new THREE.Points(particlesGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 }));
-            scene.add(textParticles);
-        });
+        }
 
-        // 3. Cây thông hồng (Sẵn sàng cuộn)
+        textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(textPositions, 3));
+        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const textMesh = new THREE.Points(textParticlesGeo, textMat);
+        scene.add(textMesh);
+
+        // 2. CÂY THÔNG HỒNG (CHỜ CHỮ TAN BIẾN XONG MỚI HIỆN)
         const maxPoints = 2500;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
@@ -72,37 +57,48 @@
         const line = new THREE.Line(curveGeo, curveMat);
         const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }));
         scene.add(line); scene.add(glowPoints);
+        line.visible = false; glowPoints.visible = false;
 
         // Ngôi sao thẳng đứng
-        const starGeo = new THREE.SphereGeometry(0.6, 16, 16); // Giả lập ngôi sao đơn giản để code nhẹ
+        const starGeo = new THREE.SphereGeometry(0.6, 16, 16);
         const star = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: 0xffd700 }));
         star.position.y = 10; star.visible = false;
         scene.add(star);
 
-        let startTime = Date.now();
+        // 3. TUYẾT RƠI
+        const snowGeo = new THREE.BufferGeometry();
+        const snowCount = 2000;
+        const snowPos = new Float32Array(snowCount * 3);
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
+        snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+        const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 }));
+        scene.add(snow);
+
         let counter = 0;
-        let startTree = false;
+        let stage = 0; // 0: Hiện chữ, 1: Tan biến, 2: Cuộn cây
+        let timer = 0;
 
         function animate() {
             requestAnimationFrame(animate);
-            let elapsed = (Date.now() - startTime) / 1000;
+            timer++;
 
-            // Xử lý tan biến chữ
-            if (textParticles) {
-                if (elapsed > 3) { // Sau 3 giây bắt đầu tan biến
-                    const pos = textParticles.geometry.attributes.position.array;
-                    for (let i = 0; i < pos.length; i++) {
-                        pos[i] += (Math.random() - 0.5) * 0.5; // Bay ra như bụi
-                    }
-                    textParticles.geometry.attributes.position.needsUpdate = true;
-                    textParticles.material.opacity -= 0.01;
-                    if (elapsed > 5) startTree = true; // Sau khi tan biến thì cây mới mọc
+            if (stage === 0 && timer > 120) stage = 1; // Sau 2 giây bắt đầu tan biến
+
+            if (stage === 1) {
+                const pos = textParticlesGeo.attributes.position.array;
+                for (let i = 0; i < pos.length; i++) {
+                    pos[i] += textVelocities[i] * 2; // Bay vụn ra 3D
+                }
+                textParticlesGeo.attributes.position.needsUpdate = true;
+                textMat.opacity -= 0.01;
+                if (textMat.opacity <= 0) {
+                    stage = 2;
+                    line.visible = true; glowPoints.visible = true;
                 }
             }
 
-            // Mọc cây thông
-            if (startTree && counter < maxPoints) {
-                let speed = 20;
+            if (stage === 2 && counter < maxPoints) {
+                let speed = 15;
                 for(let i=0; i<speed; i++) {
                     if (counter < maxPoints) {
                         const t = counter / maxPoints;
@@ -120,15 +116,17 @@
                 star.visible = true;
             }
 
-            // Tuyết rơi
+            // Xoay cây và tuyết rơi
+            if (stage === 2) {
+                line.rotation.y += 0.01;
+                glowPoints.rotation.y += 0.01;
+            }
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
                 p[i] -= 0.1; if(p[i] < -25) p[i] = 25;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
-            line.rotation.y += 0.005;
-            glowPoints.rotation.y += 0.005;
             renderer.render(scene, camera);
         }
         animate();
