@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Noel Cho Anh Vinh</title>
+    <title>Noel Cho Anh Vinh - Bản Chốt</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; }
@@ -23,17 +23,17 @@
         camera.position.set(0, 10, 25);
         controls.enableDamping = true;
 
-        // Tuyết rơi cực mịn
+        // Tuyết rơi cực phẩm
         const snowGeo = new THREE.BufferGeometry();
         const snowCount = 2500;
         const snowPos = new Float32Array(snowCount * 3);
         for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.07 });
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 });
         const snow = new THREE.Points(snowGeo, snowMat);
         scene.add(snow);
 
-        // Sợi dây hồng cuộn nghệ thuật
+        // Sợi dây hồng cuộn nghệ thuật (Mọc lên cực nhanh)
         const maxPoints = 2500;
         const curveGeo = new THREE.BufferGeometry();
         const positions = new Float32Array(maxPoints * 3);
@@ -44,11 +44,11 @@
         scene.add(line);
 
         const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({
-            color: 0xff69b4, size: 0.12, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+            color: 0xff69b4, size: 0.15, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending
         }));
         scene.add(glowPoints);
 
-        // Ngôi sao 5 cánh 3D - Đứng yên
+        // Ngôi sao 5 cánh 3D - DỰNG THẲNG ĐỨNG
         function createStar(color) {
             const shape = new THREE.Shape();
             const outerRadius = 0.8;
@@ -59,14 +59,16 @@
                 if (i === 0) shape.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
                 else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
             }
-            const extrudeSettings = { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 };
+            const extrudeSettings = { depth: 0.1, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 };
             const starGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-            return new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: color }));
+            const mesh = new THREE.Mesh(starGeo, new THREE.MeshBasicMaterial({ color: color }));
+            // Địt mẹ cho nó đứng thẳng lên đây
+            mesh.rotation.z = Math.PI / 10; 
+            return mesh;
         }
 
         const star = createStar(0xffd700);
-        star.position.set(0, 9.5, 0);
-        star.rotation.x = Math.PI / 2; // Nằm ngang hoặc đứng tùy góc nhìn
+        star.position.set(0, 9, 0);
         star.visible = false;
         scene.add(star);
 
@@ -74,13 +76,13 @@
         function animate() {
             requestAnimationFrame(animate);
             
-            // Tốc độ cuộn bình thường, mượt mà
+            // Tốc độ cuộn mượt mà chuẩn chỉ
             if (counter < maxPoints) {
-                let speed = 8; // Tốc độ chuẩn
+                let speed = 15; // Cuộn nhanh theo ý anh
                 for(let step = 0; step < speed; step++) {
                     if (counter < maxPoints) {
                         const t = counter / maxPoints;
-                        const angle = 0.35 * counter; 
+                        const angle = 0.4 * counter; 
                         const radius = 8 * (1 - t);   
                         const y = t * 18 - 9;         
                         
@@ -95,18 +97,18 @@
                 star.visible = true;
             }
 
-            // Tuyết rơi
+            // Tuyết rơi đéo lỗi
             const p = snowGeo.attributes.position.array;
             for(let i=1; i<p.length; i+=3) {
-                p[i] -= 0.08;
+                p[i] -= 0.1;
                 if(p[i] < -25) p[i] = 25;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
-            // Xoay cây 3D để xem
+            // Xoay toàn bộ cây để ngắm 3D
             line.rotation.y += 0.005;
             glowPoints.rotation.y += 0.005;
-            // Ngôi sao đứng yên đéo quay
+            // Ngôi sao cắm thẳng đứng đéo cho quay
 
             controls.update();
             renderer.render(scene, camera);
