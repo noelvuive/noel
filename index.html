@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL ANH VINH - REAL 🎁 PARTY</title>
+    <title>NOEL ANH VINH - REAL 🎁 EMOJI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
         canvas { display: block; }
         #messageBox {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.98); padding: 25px; border-radius: 20px;
-            color: #e74c3c; text-align: center; display: none; z-index: 100;
-            width: 80%; border: 5px solid #ffd700; font-family: 'Arial', sans-serif;
-            box-shadow: 0 0 30px #ffd700;
+            background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px;
+            color: #d63031; text-align: center; display: none; z-index: 100;
+            width: 75%; border: 4px solid #f1c40f; font-family: sans-serif;
         }
-        #messageBox p { font-size: 18px; font-weight: bold; margin: 0; }
-        #messageBox button { margin-top: 15px; padding: 10px 20px; background: #c0392b; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #messageBox button { margin-top: 15px; padding: 10px 20px; background: #27ae60; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="messageBox"><p id="messageText"></p><button onclick="closeMessageBox()">Đóng thư</button></div>
+    <div id="messageBox"><p id="messageText" style="font-weight:bold;"></p><button onclick="closeMessageBox()">Đóng</button></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -36,9 +34,6 @@
         controls.enableDamping = true;
 
         scene.add(new THREE.AmbientLight(0xffffff, 1));
-        const pl = new THREE.PointLight(0xffffff, 1.5);
-        pl.position.set(20, 30, 20);
-        scene.add(pl);
 
         // 1. CHỮ NỔ TUNG
         let charIndex = 0, stage = 0, timer = 0, treeCounter = 0;
@@ -68,27 +63,26 @@
             textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. CÂY THÔNG XOAY & SAO CHUẨN
-        const maxPts = 4000;
+        // 2. CÂY THÔNG HẠT
+        const maxPts = 3500;
         const treeGeo = new THREE.BufferGeometry();
         const curPos = new Float32Array(maxPts * 3);
         const burstPos = new Float32Array(maxPts * 3);
         for(let i=0; i<maxPts; i++) {
-            curPos[i*3] = 0; curPos[i*3+1] = -10; curPos[i*3+2] = 0;
-            burstPos[i*3] = (Math.random()-0.5)*50; burstPos[i*3+1] = (Math.random()-0.5)*40; burstPos[i*3+2] = (Math.random()-0.5)*50;
+            curPos[i*3] = 0; curPos[i*3+1] = -8; curPos[i*3+2] = 0;
+            burstPos[i*3] = (Math.random()-0.5)*45; burstPos[i*3+1] = (Math.random()-0.5)*35; burstPos[i*3+2] = (Math.random()-0.5)*45;
         }
         treeGeo.setAttribute('position', new THREE.BufferAttribute(curPos, 3));
-        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ color: 0xff1493, size: 0.18, transparent: true }));
+        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ color: 0xff69b4, size: 0.18, transparent: true }));
         scene.add(treePoints); treePoints.visible = false;
 
-        const hitZone = new THREE.Mesh(new THREE.CylinderGeometry(8, 2, 18, 16), new THREE.MeshBasicMaterial({visible: false}));
+        const hitZone = new THREE.Mesh(new THREE.CylinderGeometry(6, 2, 16, 16), new THREE.MeshBasicMaterial({visible: false}));
         scene.add(hitZone);
 
         function createStar() {
             const shape = new THREE.Shape();
-            const ext = 1.3, inn = 0.6;
             for(let i=0; i<10; i++) {
-                const r = i%2===0 ? ext : inn;
+                const r = i%2===0 ? 1.3 : 0.6;
                 const a = (i * Math.PI * 2) / 10 + Math.PI/2;
                 if(i===0) shape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
                 else shape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
@@ -96,35 +90,35 @@
             return new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({color: 0xffd700, side: THREE.DoubleSide}));
         }
         const star = createStar();
-        star.position.set(0, 8.5, 0); star.visible = false; scene.add(star);
+        star.position.set(0, 8, 0); star.visible = false; scene.add(star);
 
-        // 3. 20 HỘP QUÀ CHUẨN 🎁 (ĐỎ + NƠ VÀNG)
+        // 3. 20 HỘP QUÀ EMOJI 🎁
         const gifts = [];
-        const msgs = ["Giáng sinh an lành!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn tươi cười!", "Thành công rực rỡ!", "Bình an nhé!", "Merry Christmas!", "Love you!", "Quà xịn chưa!", "Chúc may mắn!", "Mạnh khỏe nhé!", "Ấm áp đêm Noel!", "Vui vẻ lên!", "Vạn sự tốt lành!", "Tiền vào như nước!", "Gia đình hạnh phúc!", "Mãi đỉnh!", "Tuyệt vời!", "Sức khỏe dồi dào!", "Nụ cười rạng rỡ!"];
+        const msgs = ["Giáng sinh ấm áp!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn mỉm cười!", "Thành công rực rỡ!", "Bình an!", "Merry Christmas!", "Love you!", "Quà xịn chưa!", "Chúc may mắn!", "Mạnh khỏe!", "Vui vẻ!", "Vạn sự tốt lành!", "Tiền đầy túi!", "Mãi đỉnh!", "Tuyệt vời!", "Sức khỏe!", "Nụ cười!", "Gia đình bình an!", "Thành đạt!"];
         const giftGrp = new THREE.Group(); scene.add(giftGrp);
 
-        function createEmojiGift() {
-            const g = new THREE.Group();
-            const box = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), new THREE.MeshStandardMaterial({color: 0xe74c3c})); // Đỏ
-            const nơDọc = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.5, 0.5), new THREE.MeshBasicMaterial({color: 0xffd700})); // Vàng
-            const nơNgang = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 3.1), new THREE.MeshBasicMaterial({color: 0xffd700}));
-            const nơTop = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.15, 8, 16), new THREE.MeshBasicMaterial({color: 0xffd700}));
-            nơTop.position.y = 1.6; nơTop.rotation.x = Math.PI/2;
-            g.add(box, nơDọc, nơNgang, nơTop);
-            return g;
-        }
+        // Tạo canvas vẽ emoji 🎁
+        const giftCanvas = document.createElement('canvas');
+        giftCanvas.width = 128; giftCanvas.height = 128;
+        const gCtx = giftCanvas.getContext('2d');
+        gCtx.font = '100px serif'; gCtx.textAlign = 'center'; gCtx.textBaseline = 'middle';
+        gCtx.fillText('🎁', 64, 70);
+        const giftTex = new THREE.CanvasTexture(giftCanvas);
+
         for(let i=0; i<20; i++) {
-            const g = createEmojiGift();
-            g.position.set((Math.random()-0.5)*40, (Math.random()-0.5)*30, (Math.random()-0.5)*40);
-            g.visible = false; giftGrp.add(g); gifts.push(g);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: giftTex }));
+            sprite.scale.set(4, 4, 1);
+            sprite.position.set((Math.random()-0.5)*35, (Math.random()-0.5)*25, (Math.random()-0.5)*35);
+            sprite.visible = false; giftGrp.add(sprite); gifts.push(sprite);
         }
 
-        // 4. TUYẾT CHẬM
+        // 4. TUYẾT RƠI CHẬM
         const sGeo = new THREE.BufferGeometry();
-        const sP = new Float32Array(8000 * 3);
-        for(let i=0; i<24000; i++) sP[i] = (Math.random()-0.5)*120;
+        const sP = new Float32Array(6000 * 3);
+        for(let i=0; i<18000; i++) sP[i] = (Math.random()-0.5)*100;
         sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.12})));
+        const snow = new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1}));
+        scene.add(snow);
 
         let exploded = false;
         const raycaster = new THREE.Raycaster();
@@ -137,10 +131,9 @@
                 const hits = raycaster.intersectObject(hitZone);
                 if(hits.length > 0) exploded = !exploded;
                 if(exploded) {
-                    const gHits = raycaster.intersectObjects(giftGrp.children, true);
+                    const gHits = raycaster.intersectObjects(giftGrp.children);
                     if(gHits.length > 0) {
-                        let obj = gHits[0].object; while(obj.parent !== giftGrp) obj = obj.parent;
-                        document.getElementById('messageText').innerText = msgs[gifts.indexOf(obj)];
+                        document.getElementById('messageText').innerText = msgs[gifts.indexOf(gHits[0].object)];
                         document.getElementById('messageBox').style.display = 'block';
                     }
                 }
@@ -164,9 +157,11 @@
                 textMat.opacity -= 0.03;
                 if(textMat.opacity <= 0) { stage = 2; treePoints.visible = true; }
             } else if(stage === 2) {
-                // XOAY MỌI LÚC
-                treePoints.rotation.y += 0.015;
-                star.rotation.y += 0.02;
+                // CHỈ XOAY KHI KHÔNG NỔ
+                if(!exploded) {
+                    treePoints.rotation.y += 0.015;
+                    star.rotation.y += 0.02;
+                }
 
                 const p = treeGeo.attributes.position.array;
                 if(treeCounter < maxPts) {
@@ -187,10 +182,11 @@
                     }
                 }
                 treeGeo.attributes.position.needsUpdate = true;
-                gifts.forEach(g => { g.visible = exploded; if(exploded) { g.rotation.y += 0.02; g.rotation.x += 0.01; } });
+                gifts.forEach(g => { g.visible = exploded; if(exploded) g.position.y += Math.sin(Date.now()*0.002)*0.01; });
             }
+            // TUYẾT RƠI CHẬM
             const sp = sGeo.attributes.position.array;
-            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.07; if(sp[i]<-60) sp[i]=60; }
+            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.05; if(sp[i]<-50) sp[i]=50; }
             sGeo.attributes.position.needsUpdate = true;
             renderer.render(scene, camera);
         }
