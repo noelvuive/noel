@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL ANH VINH - 20 GIFTS PARTY</title>
+    <title>NOEL ANH VINH - REAL 🎁 PARTY</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
         canvas { display: block; }
         #messageBox {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.98); padding: 30px; border-radius: 20px;
-            color: #2c3e50; text-align: center; display: none; z-index: 100;
-            width: 80%; border: 6px solid #e74c3c; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.98); padding: 25px; border-radius: 20px;
+            color: #e74c3c; text-align: center; display: none; z-index: 100;
+            width: 80%; border: 5px solid #ffd700; font-family: 'Arial', sans-serif;
+            box-shadow: 0 0 30px #ffd700;
         }
-        #messageBox p { font-size: 20px; font-weight: bold; line-height: 1.6; margin: 0; }
-        #messageBox button { margin-top: 20px; padding: 12px 25px; background: #27ae60; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #messageBox p { font-size: 18px; font-weight: bold; margin: 0; }
+        #messageBox button { margin-top: 15px; padding: 10px 20px; background: #c0392b; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,12 +32,12 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 45);
+        camera.position.set(0, 5, 40);
         controls.enableDamping = true;
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-        const pl = new THREE.PointLight(0xffffff, 1.2);
-        pl.position.set(20, 20, 20);
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        const pl = new THREE.PointLight(0xffffff, 1.5);
+        pl.position.set(20, 30, 20);
         scene.add(pl);
 
         // 1. CHỮ NỔ TUNG
@@ -68,7 +68,7 @@
             textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. CÂY THÔNG HẠT 3D
+        // 2. CÂY THÔNG XOAY & SAO CHUẨN
         const maxPts = 4000;
         const treeGeo = new THREE.BufferGeometry();
         const curPos = new Float32Array(maxPts * 3);
@@ -86,7 +86,7 @@
 
         function createStar() {
             const shape = new THREE.Shape();
-            const ext = 1.2, inn = 0.5;
+            const ext = 1.3, inn = 0.6;
             for(let i=0; i<10; i++) {
                 const r = i%2===0 ? ext : inn;
                 const a = (i * Math.PI * 2) / 10 + Math.PI/2;
@@ -98,51 +98,28 @@
         const star = createStar();
         star.position.set(0, 8.5, 0); star.visible = false; scene.add(star);
 
-        // 3. 20 HỘP QUÀ SIÊU CẤP 🎁
+        // 3. 20 HỘP QUÀ CHUẨN 🎁 (ĐỎ + NƠ VÀNG)
         const gifts = [];
-        const msgs = [
-            "Chúc bạn Giáng sinh an lành, ấm áp bên người thân!",
-            "Cầu mong mọi điều ước của bạn sẽ thành hiện thực!",
-            "Hạnh phúc, may mắn và luôn nở nụ cười trên môi nhé!",
-            "Chúc bạn một mùa lễ rực rỡ và đầy ắp kỷ niệm đẹp!",
-            "Merry Christmas! Gửi ngàn lời chúc tốt đẹp nhất!",
-            "Mong bạn luôn mạnh khỏe và gặt hái nhiều thành công!",
-            "Giáng sinh ngọt ngào như những viên kẹo, hạnh phúc nhé!",
-            "Chúc gia đình bạn luôn bình an và tràn ngập tiếng cười!",
-            "Mùa Noel này, chúc bạn tìm thấy thật nhiều niềm vui mới!",
-            "Tận hưởng khoảnh khắc diệu kỳ của đêm Giáng sinh nhé!",
-            "Hy vọng 2026 của bạn sẽ bùng nổ và đại thắng!",
-            "Yêu đời, yêu người và luôn giữ vững niềm tin bạn nhé!",
-            "Giáng sinh này, mong bạn nhận được những món quà tuyệt vời nhất!",
-            "Chúc bạn luôn tràn đầy năng lượng và nhiệt huyết!",
-            "Bình yên sẽ đến với bạn trong đêm đông ấm áp này!",
-            "Cám ơn bạn vì đã luôn tuyệt vời, Noel vui vẻ nhé!",
-            "Mọi thử thách sẽ qua đi, chỉ có niềm vui ở lại!",
-            "Chúc bạn có một bữa tối Noel ấm cúng và ngon miệng!",
-            "Đừng quên ước một điều thật đẹp dưới ánh sao đêm nay!",
-            "Gửi trọn yêu thương vào hộp quà này dành cho bạn!"
-        ];
+        const msgs = ["Giáng sinh an lành!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn tươi cười!", "Thành công rực rỡ!", "Bình an nhé!", "Merry Christmas!", "Love you!", "Quà xịn chưa!", "Chúc may mắn!", "Mạnh khỏe nhé!", "Ấm áp đêm Noel!", "Vui vẻ lên!", "Vạn sự tốt lành!", "Tiền vào như nước!", "Gia đình hạnh phúc!", "Mãi đỉnh!", "Tuyệt vời!", "Sức khỏe dồi dào!", "Nụ cười rạng rỡ!"];
         const giftGrp = new THREE.Group(); scene.add(giftGrp);
 
-        function createGiftBox() {
-            const group = new THREE.Group();
-            const box = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.5), new THREE.MeshStandardMaterial({color: Math.random()*0xffffff}));
-            const r1 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 0.4), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            const r2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.6, 0.4), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            const r3 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 2.6), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            const bow = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), new THREE.MeshBasicMaterial({color: 0xffffff}));
-            bow.position.y = 1.3;
-            group.add(box, r1, r2, r3, bow);
-            return group;
+        function createEmojiGift() {
+            const g = new THREE.Group();
+            const box = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), new THREE.MeshStandardMaterial({color: 0xe74c3c})); // Đỏ
+            const nơDọc = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.5, 0.5), new THREE.MeshBasicMaterial({color: 0xffd700})); // Vàng
+            const nơNgang = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 3.1), new THREE.MeshBasicMaterial({color: 0xffd700}));
+            const nơTop = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.15, 8, 16), new THREE.MeshBasicMaterial({color: 0xffd700}));
+            nơTop.position.y = 1.6; nơTop.rotation.x = Math.PI/2;
+            g.add(box, nơDọc, nơNgang, nơTop);
+            return g;
         }
-
         for(let i=0; i<20; i++) {
-            const g = createGiftBox();
-            g.position.set((Math.random()-0.5)*35, (Math.random()-0.5)*25, (Math.random()-0.5)*35);
+            const g = createEmojiGift();
+            g.position.set((Math.random()-0.5)*40, (Math.random()-0.5)*30, (Math.random()-0.5)*40);
             g.visible = false; giftGrp.add(g); gifts.push(g);
         }
 
-        // 4. TUYẾT RƠI CHẬM
+        // 4. TUYẾT CHẬM
         const sGeo = new THREE.BufferGeometry();
         const sP = new Float32Array(8000 * 3);
         for(let i=0; i<24000; i++) sP[i] = (Math.random()-0.5)*120;
@@ -178,8 +155,8 @@
             controls.update();
             if(stage === 0) {
                 timer++;
-                if(timer%10===0 && charIndex <= "MERRY CHRISTMAS".length) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > "MERRY CHRISTMAS".length && timer > 200) stage = 1;
+                if(timer%10===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
+                if(charIndex > 15 && timer > 200) stage = 1;
             } else if(stage === 1) {
                 const p = textGeo.attributes.position.array;
                 for(let i=0; i<p.length; i++) p[i] += textVels[i]*4;
@@ -187,6 +164,10 @@
                 textMat.opacity -= 0.03;
                 if(textMat.opacity <= 0) { stage = 2; treePoints.visible = true; }
             } else if(stage === 2) {
+                // XOAY MỌI LÚC
+                treePoints.rotation.y += 0.015;
+                star.rotation.y += 0.02;
+
                 const p = treeGeo.attributes.position.array;
                 if(treeCounter < maxPts) {
                     for(let i=0; i<15; i++) {
@@ -202,11 +183,11 @@
                         const tX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*6*(1-i/maxPts));
                         const tY = exploded ? burstPos[i*3+1] : (i/maxPts*15-7.5);
                         const tZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*6*(1-i/maxPts));
-                        p[i*3] += (tX - p[i*3]) * 0.07; p[i*3+1] += (tY - p[i*3+1]) * 0.07; p[i*3+2] += (tZ - p[i*3+2]) * 0.07;
+                        p[i*3] += (tX - p[i*3]) * 0.08; p[i*3+1] += (tY - p[i*3+1]) * 0.08; p[i*3+2] += (tZ - p[i*3+2]) * 0.08;
                     }
                 }
                 treeGeo.attributes.position.needsUpdate = true;
-                gifts.forEach(g => { g.visible = exploded; if(exploded) { g.rotation.y += 0.01; g.rotation.x += 0.005; } });
+                gifts.forEach(g => { g.visible = exploded; if(exploded) { g.rotation.y += 0.02; g.rotation.x += 0.01; } });
             }
             const sp = sGeo.attributes.position.array;
             for(let i=1; i<sp.length; i+=3) { sp[i]-=0.07; if(sp[i]<-60) sp[i]=60; }
