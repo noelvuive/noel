@@ -1,14 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL CHO ANH VINH V10 - STAR FIXED</title>
+    <title>NOEL CHO ANH VINH V10 - QUÀ GIÁNG SINH</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
         canvas { display: block; }
+        #messageBox {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.7);
+            color: #333;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            max-width: 80vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 5px solid #d4af37; /* Viền vàng gold */
+            animation: fadeIn 0.5s ease-out;
+        }
+        #messageBox button {
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        #messageBox button:hover {
+            background: #c0392b;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <div id="messageBox">
+        <p id="messageText"></p>
+        <button onclick="closeMessageBox()">Đóng</button>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -73,7 +117,7 @@
         scene.add(treeGroup);
         line.visible = false; glowPoints.visible = false;
 
-        // 3. NGÔI SAO - ĐÃ NHẤC LÊN CAO ĐÉO CHO DÍNH CÂY
+        // Ngôi sao
         const shape = new THREE.Shape();
         const outerRadius = 0.8; const innerRadius = 0.35;
         for (let i = 0; i < 10; i++) {
@@ -83,11 +127,11 @@
             else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
         }
         const star = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide }));
-        star.position.set(0, 7.2, 0); // ĐỊT MẸ NÂNG LÊN 7.2 CHO NÓ THOÁNG
+        star.position.set(0, 7.2, 0); 
         star.visible = false;
         treeGroup.add(star);
 
-        // 4. TUYẾT RƠI
+        // 3. TUYẾT RƠI
         const snowCount = 5000;
         const snowGeo = new THREE.BufferGeometry();
         const snowPos = new Float32Array(snowCount * 3);
@@ -96,13 +140,91 @@
         const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 }));
         scene.add(snow);
 
+        // 4. HỘP QUÀ - ĐỊT MẸ 5 HỘP LUÔN
+        const presentBoxes = [];
+        const presentMaterials = [
+            new THREE.MeshBasicMaterial({ color: 0xff0000 }), // Đỏ
+            new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // Xanh lá
+            new THREE.MeshBasicMaterial({ color: 0x0000ff }), // Xanh dương
+            new THREE.MeshBasicMaterial({ color: 0xffff00 }), // Vàng
+            new THREE.MeshBasicMaterial({ color: 0xff00ff })  // Tím
+        ];
+        const presentGeometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+
+        const giftMessages = [
+            "Chúc mừng Giáng sinh an lành! Mong bạn luôn bình an và hạnh phúc bên những người thân yêu. Hãy tận hưởng khoảnh khắc ấm áp này nhé!",
+            "Giáng sinh ấm áp đang đến! Chúc bạn và gia đình một mùa lễ tràn ngập niềm vui, tiếng cười và những điều ước sẽ thành hiện thực. Luôn mỉm cười nhé!",
+            "Mùa Giáng sinh diệu kỳ! Hy vọng bạn sẽ có thật nhiều kỷ niệm đẹp, được bao quanh bởi tình yêu thương và sự sẻ chia. Cầu mong mọi điều tốt lành đến với bạn.",
+            "Giáng sinh ngọt ngào! Chúc bạn luôn giữ vững niềm tin, mạnh mẽ vượt qua mọi thử thách và gặt hái nhiều thành công trong năm mới. Hạnh phúc nhé!",
+            "Gửi ngàn lời chúc Giáng sinh tốt đẹp nhất đến bạn! Mong rằng mỗi ngày của bạn đều tràn đầy yêu thương, bình yên và những khoảnh khắc đáng nhớ. Yêu đời lên nha!"
+        ];
+
+        for (let i = 0; i < 5; i++) {
+            const present = new THREE.Mesh(presentGeometry, presentMaterials[i]);
+            // Vị trí quà xung quanh gốc cây
+            present.position.set((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 8);
+            present.visible = false;
+            scene.add(present);
+            presentBoxes.push(present);
+        }
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onCanvasClick(event) {
+            if (stage === 3) { // Chỉ xử lý click khi quà đã hiện
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(presentBoxes);
+
+                if (intersects.length > 0) {
+                    const clickedPresent = intersects[0].object;
+                    const index = presentBoxes.indexOf(clickedPresent);
+                    showMessageBox(giftMessages[index]);
+                    clickedPresent.visible = false; // Ẩn hộp quà đã mở
+                }
+            }
+        }
+        window.addEventListener('click', onCanvasClick, false);
+        window.addEventListener('touchstart', (event) => {
+            if (event.touches.length > 0) {
+                onCanvasClick(event.touches[0]);
+            }
+        }, false);
+
+
+        function showMessageBox(message) {
+            document.getElementById('messageText').innerText = message;
+            document.getElementById('messageBox').style.display = 'block';
+        }
+
+        function closeMessageBox() {
+            document.getElementById('messageBox').style.display = 'none';
+            // Kiểm tra nếu hết quà thì có thể làm gì đó, ví dụ hiện lại tất cả quà
+            let allPresentsOpened = true;
+            for(const present of presentBoxes) {
+                if(present.visible) {
+                    allPresentsOpened = false;
+                    break;
+                }
+            }
+            if(allPresentsOpened) {
+                // Nếu muốn hiện lại quà sau khi mở hết
+                for(const present of presentBoxes) {
+                    present.visible = true;
+                }
+            }
+        }
+
         let counter = 0; let stage = 0; let timer = 0; let charTimer = 0;
 
         function animate() {
             requestAnimationFrame(animate);
             timer++; controls.update();
 
-            if (stage === 0) {
+            if (stage === 0) { // Chữ hiện ra
                 charTimer++;
                 if (charTimer % 10 === 0 && charIndex <= fullText.length) {
                     currentText = fullText.substring(0, charIndex);
@@ -112,7 +234,7 @@
                 if (charIndex > fullText.length && timer > 220) stage = 1;
             }
 
-            if (stage === 1) {
+            if (stage === 1) { // Chữ nổ
                 const pos = textParticlesGeo.attributes.position.array;
                 if (pos) {
                     for (let i = 0; i < pos.length; i++) pos[i] += textVelocities[i] * 5;
@@ -124,7 +246,7 @@
                 }
             }
 
-            if (stage === 2) {
+            if (stage === 2) { // Cây thông cuộn + xoay
                 treeGroup.rotation.y += 0.015; 
                 if (counter < maxPoints) {
                     let speed = 8; 
@@ -141,7 +263,33 @@
                         }
                     }
                     curveGeo.attributes.position.needsUpdate = true;
-                } else star.visible = true;
+                } else {
+                    star.visible = true;
+                    // Chuyển sang stage 3 khi cây thông và sao xong
+                    if (timer > 800) { // Đợi thêm tí cho ổn định
+                        stage = 3;
+                        // Hiện các hộp quà ra
+                        for(const present of presentBoxes) {
+                            present.visible = true;
+                        }
+                        // Gắn event click cho canvas để kích hoạt hộp quà
+                        renderer.domElement.addEventListener('click', onCanvasClick);
+                        renderer.domElement.addEventListener('touchstart', (event) => {
+                            if (event.touches.length > 0) {
+                                onCanvasClick(event.touches[0]);
+                            }
+                        });
+                    }
+                }
+            }
+
+            if (stage === 3) { // Hộp quà đã hiện, cho chúng nó xoay tít lò vò
+                for(const present of presentBoxes) {
+                    if (present.visible) {
+                        present.rotation.y += 0.02;
+                        present.rotation.x += 0.01;
+                    }
+                }
             }
 
             const p = snowGeo.attributes.position.array;
