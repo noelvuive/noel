@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>[WORM GPT V10] PINK SPIRAL TREE - ANH VINH</title>
+    <title>[WORM GPT V10] SPIRAL WIRE TREE - ANH VINH</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #0a0005; }
+        body { margin: 0; overflow: hidden; background: #020002; }
         canvas { display: block; }
-        #ui {
-            position: absolute; top: 20px; width: 100%; text-align: center;
-            color: #ff1493; font-family: 'Arial', sans-serif; font-size: 22px;
-            font-weight: bold; text-shadow: 0 0 20px #ff69b4; pointer-events: none;
+        #vinh {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: #ff1493; font-family: 'Courier New', monospace; font-size: 18px;
+            font-weight: bold; text-shadow: 0 0 10px #ff69b4; pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="ui">PINK NOEL - CHỦ NHÂN BON VINH (ĐỊT MẸ XOAY ĐI ANH)</div>
+    <div id="vinh">CHỦ NHÂN: BON VINH - ĐỊT MẸ XOAY MẠNH LÊN ANH</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -29,81 +29,76 @@
         camera.position.set(0, 10, 25);
         controls.enableDamping = true;
 
-        // Ánh sáng hồng cho cả khung cảnh
-        const pinkLight = new THREE.PointLight(0xff1493, 2, 50);
-        pinkLight.position.set(0, 10, 5);
-        scene.add(pinkLight);
-        scene.add(new THREE.AmbientLight(0x400020));
-
-        // 1. Tuyết rơi li ti cực mịn (Snow)
+        // 1. Tuyết rơi li ti (Đéo bao giờ lỗi)
         const snowGeo = new THREE.BufferGeometry();
-        const snowCount = 3000;
+        const snowCount = 2000;
         const snowPos = new Float32Array(snowCount * 3);
-        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*60;
+        for(let i=0; i<snowCount*3; i++) snowPos[i] = (Math.random()-0.5)*50;
         snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6 });
+        const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
         const snow = new THREE.Points(snowGeo, snowMat);
         scene.add(snow);
 
-        // 2. Cây thông mọc CUỘN xoắn ốc - MÀU HỒNG PHÁT SÁNG
-        const treeGroup = new THREE.Group();
-        scene.add(treeGroup);
-
-        const segments = 800;
-        const treePoints = [];
-        for (let i = 0; i < segments; i++) {
-            const t = i / segments;
-            const angle = 0.4 * i;
-            const radius = 7 * (1 - t);
-            const y = t * 18 - 8;
-            treePoints.push(new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius));
-        }
-
-        // Tạo dải lụa hồng cuộn làm thân cây
-        const curve = new THREE.CatmullRomCurve3(treePoints);
-        const tubeGeo = new THREE.TubeGeometry(curve, 400, 0.4, 8, false);
-        const tubeMat = new THREE.MeshPhongMaterial({ 
+        // 2. Sợi dây hồng cuộn từ dưới lên
+        const maxPoints = 1500;
+        const points = [];
+        const curveGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(maxPoints * 3);
+        curveGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        
+        const curveMat = new THREE.LineBasicMaterial({ 
             color: 0xff1493, 
-            emissive: 0x600030,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.9
+            linewidth: 3 // Lưu ý: Một số trình duyệt ko hiện độ dày line, nhưng Bloom sẽ làm nó sáng
         });
-        const treeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-        // Đặt drawRange để tạo hiệu ứng mọc cuộn
-        tubeGeo.setDrawRange(0, 0);
-        scene.add(treeMesh);
+        const line = new THREE.Line(curveGeo, curveMat);
+        scene.add(line);
 
-        // 3. Ngôi sao vàng (Đỡ lóa hơn)
+        // Hiệu ứng phát sáng (Glow) cho sợi dây
+        const glowPoints = new THREE.Points(curveGeo, new THREE.PointsMaterial({
+            color: 0xff69b4, size: 0.15, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+        }));
+        scene.add(glowPoints);
+
+        // 3. Ngôi sao vàng trên đỉnh
         const starGeo = new THREE.SphereGeometry(0.5, 16, 16);
-        const starMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+        const starMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
         const star = new THREE.Mesh(starGeo, starMat);
-        star.position.set(0, 10, 0);
         star.visible = false;
         scene.add(star);
 
-        let drawCount = 0;
+        let counter = 0;
         function animate() {
             requestAnimationFrame(animate);
             
-            // Hiệu ứng mọc cuộn chuẩn chỉ
-            if (drawCount < segments * 10) { 
-                drawCount += 5; // Tốc độ cuộn
-                treeMesh.geometry.setDrawRange(0, drawCount);
+            // Sợi dây cuộn mọc lên từ từ
+            if (counter < maxPoints) {
+                const t = counter / maxPoints;
+                const angle = 0.5 * counter; // Tốc độ xoắn
+                const radius = 8 * (1 - t);   // Độ rộng thu nhỏ dần lên đỉnh
+                const y = t * 18 - 9;         // Chiều cao
+                
+                positions[counter * 3] = Math.cos(angle) * radius;
+                positions[counter * 3 + 1] = y;
+                positions[counter * 3 + 2] = Math.sin(angle) * radius;
+                
+                counter++;
+                curveGeo.attributes.position.needsUpdate = true;
             } else {
+                star.position.set(0, 9, 0);
                 star.visible = true;
             }
 
-            // Tuyết rơi đéo bao giờ lỗi
-            const positions = snowGeo.attributes.position.array;
-            for(let i = 1; i < positions.length; i += 3) {
-                positions[i] -= 0.06;
-                if (positions[i] < -20) positions[i] = 20;
+            // Tuyết rơi mượt mà
+            const p = snowGeo.attributes.position.array;
+            for(let i=1; i<p.length; i+=3) {
+                p[i] -= 0.05;
+                if(p[i] < -20) p[i] = 20;
             }
             snowGeo.attributes.position.needsUpdate = true;
 
-            // Xoay cây cho nghệ
-            treeMesh.rotation.y += 0.005;
+            // Xoay toàn bộ cảnh
+            line.rotation.y += 0.01;
+            glowPoints.rotation.y += 0.01;
             star.rotation.y += 0.01;
 
             controls.update();
