@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL CHO ANH VINH V10 - SLOW ROLL</title>
+    <title>NOEL CHO ANH VINH V10 - STAR FIXED</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
@@ -24,7 +24,7 @@
         camera.position.set(0, 5, 35);
         controls.enableDamping = true;
 
-        // 1. CHỮ TRẮNG ĐẬM NHỎ GỌN
+        // 1. CHỮ TRẮNG ĐẬM
         const fullText = "MERRY CHRISTMAS";
         let currentText = "";
         let charIndex = 0;
@@ -59,7 +59,7 @@
             textParticlesGeo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
         }
 
-        // 2. CÂY THÔNG - ĐÃ CHO CUỘN CHẬM LẠI THEO Ý ANH VINH
+        // 2. CÂY THÔNG - CUỘN CHẬM
         const maxPoints = 4000;
         const curveGeo = new THREE.BufferGeometry();
         const curvePos = new Float32Array(maxPoints * 3);
@@ -73,6 +73,7 @@
         scene.add(treeGroup);
         line.visible = false; glowPoints.visible = false;
 
+        // 3. NGÔI SAO - ĐÃ NHẤC LÊN CAO ĐÉO CHO DÍNH CÂY
         const shape = new THREE.Shape();
         const outerRadius = 0.8; const innerRadius = 0.35;
         for (let i = 0; i < 10; i++) {
@@ -82,11 +83,11 @@
             else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
         }
         const star = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide }));
-        star.position.set(0, 6.5, 0); 
+        star.position.set(0, 7.2, 0); // ĐỊT MẸ NÂNG LÊN 7.2 CHO NÓ THOÁNG
         star.visible = false;
         treeGroup.add(star);
 
-        // 3. TUYẾT RƠI
+        // 4. TUYẾT RƠI
         const snowCount = 5000;
         const snowGeo = new THREE.BufferGeometry();
         const snowPos = new Float32Array(snowCount * 3);
@@ -126,7 +127,7 @@
             if (stage === 2) {
                 treeGroup.rotation.y += 0.015; 
                 if (counter < maxPoints) {
-                    let speed = 8; // ĐỊT MẸ GIẢM SPEED TỪ 40 XUỐNG 8 CHO NÓ CHẬM
+                    let speed = 8; 
                     for(let i=0; i<speed; i++) {
                         if (counter < maxPoints) {
                             const t = counter / maxPoints;
@@ -160,4 +161,3 @@
     </script>
 </body>
 </html>
-
