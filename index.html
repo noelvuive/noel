@@ -1,239 +1,209 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-    <title>Noel Gift - Hot Phòng</title>
+    <title>NOEL ANH VINH - PINK NEON TREE 🌟</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body, html { background: #0b1120; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-
-        #loading { position: fixed; inset: 0; background: #0b1120; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease; }
-        #loading img { width: 120px; }
-
-        #snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
-
-        /* Hiệu ứng rơi chung */
-        .falling-item { 
-            position: absolute; top: -100px; white-space: nowrap; 
-            animation: fall linear forwards; 
-            color: rgba(255, 255, 255, 0.4);
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
+        canvas { display: block; }
+        #messageBox {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98); padding: 20px; border-radius: 20px;
+            color: #d63031; text-align: center; display: none; z-index: 1000;
+            width: 70%; border: 5px solid #f1c40f; font-family: sans-serif;
         }
-        
-        @keyframes fall { 
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; } 
-            15% { opacity: var(--max-opacity); } 
-            100% { transform: translateY(110vh) rotate(20deg); opacity: 0; } 
-        }
-
-        /* Style cho chữ Hot Phòng khi chuyển sang màu hồng */
-        .pink-activated .falling-text {
-            color: #FFB6C1 !important; 
-            text-shadow: 0 0 10px #FFB6C1, 0 0 20px #fff;
-            font-weight: bold;
-        }
-
-        /* --- CẤU TRÚC CÂY THÔNG DÂY NEON HỒNG --- */
-        .pink-tree {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            filter: drop-shadow(0 0 5px #ff69b4);
-        }
-        .neon-thread {
-            height: 3px;
-            background: #ff69b4;
-            border-radius: 10px;
-            box-shadow: 0 0 8px #ff69b4, 0 0 15px #ff1493;
-            margin: 1px 0;
-            animation: glow 1.5s infinite alternate;
-        }
-        @keyframes glow {
-            from { opacity: 0.7; box-shadow: 0 0 5px #ff69b4; }
-            to { opacity: 1; box-shadow: 0 0 12px #ff1493, 0 0 20px #ff69b4; }
-        }
-
-        /* --- GIFT BOX --- */
-        .gift-container {
-            position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; cursor: pointer; 
-            transition: top 3s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .gift-at-center { top: 50% !important; transform: translate(-50%, -50%) !important; }
-
-        .gift-box-body {
-            position: relative; width: 100px; height: 85px; background: #d42424;
-            border-radius: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            animation: swing 3s infinite ease-in-out;
-        }
-        @keyframes swing { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-        .gift-box-body::before { content: ''; position: absolute; width: 110px; height: 25px; background: #e74c3c; top: -25px; left: -5px; border-radius: 3px; z-index: 5; transition: 0.5s; }
-        .gift-box-body::after { content: ''; position: absolute; width: 20px; height: 100%; background: #ffdb11; left: 50%; transform: translateX(-50%); }
-
-        .letter {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 50px; height: 30px; background: #fff; border-radius: 5px;
-            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 2;
-            overflow: hidden;
-        }
-        .open .letter {
-            width: 90vw; max-width: 380px; height: 75vh; bottom: 50%; 
-            transform: translateX(-50%) translateY(50%);
-            opacity: 1; padding: 20px; box-shadow: 0 0 40px rgba(255,255,255,0.2);
-            overflow-y: auto;
-        }
-        .open .gift-box-body::before { transform: translateY(-80px) rotate(-20deg); opacity: 0; }
-
-        .letter-text { display: none; text-align: left; color: #333; font-size: 14px; line-height: 1.6; }
-        .open .letter-text { display: block; }
-        .letter-header { text-align: center; color: #d42424; font-weight: bold; font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; }
-        .wish-item { margin-bottom: 15px; border-bottom: 1px dotted #eee; padding-bottom: 8px; }
-        .name { font-weight: bold; color: #c0392b; }
-
-        .signature { text-align: center; font-weight: bold; font-size: 24px; color: #d42424; margin-top: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
-        .close-btn { display: block; width: 140px; margin: 25px auto 10px; padding: 12px; background: #d42424; color: #fff; text-align: center; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(212,36,36,0.4); }
-
-        .box-disappear { animation: rotateAndAway 1.8s forwards ease-in !important; pointer-events: none; }
-        @keyframes rotateAndAway {
-            0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            100% { transform: translate(-50%, 120vh) rotate(540deg); opacity: 0; }
-        }
-        #player { position: absolute; width: 0; height: 0; opacity: 0; }
+        #messageBox button { margin-top: 10px; padding: 12px 25px; background: #27ae60; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+    <div id="messageBox"><p id="messageText" style="font-weight:bold;"></p><button onclick="closeMessageBox(event)">Đóng</button></div>
 
-    <div id="loading"><img src="https://media4.giphy.com/media/0dAMYxFahMEvxW0ese/giphy.gif"></div>
-    <div id="snow-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    <div id="gift-wrapper" class="gift-container">
-        <div class="letter" id="letter-close">
-            <div class="letter-text">
-                <div class="letter-header">Hot Phòng ~</div>
-                
-                <div class="wish-item">Noen vui vẻ nha <span class="name">blewiz.12</span>, chúc bạn một mùa Giáng sinh luôn tỏa sáng! ✨</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">emm bé ~</span>, chúc bé luôn giữ trọn nét đáng yêu! 🧸</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">thi</span>, chúc thi một đêm lễ lung linh, xinh đẹp! ❄️</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">baolamm ?</span>, chúc bạn một mùa đông ấm áp! 🌟</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">ahh bo ~</span>, chúc bạn luôn vui tươi, rực rỡ! 🔥</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">lphuoc hau` 04</span>, chúc bạn an lành! 🎄</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">die.4u~06</span>, chúc bạn luôn ngọt ngào! 🎁</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">kieutien</span>, chúc bạn luôn rạng ngời! 💖</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">vợ nhi😋</span>, chúc bạn mãi xinh đẹp! 🍬</div>
-                <div class="wish-item">Noen vui vẻ nha <span class="name">luve.hurts_</span>, chúc bạn luôn bình yên! 🌈</div>
-
-                <div class="signature">BY HOT PHÒNG ~</div>
-                <div class="close-btn" onclick="toggleGift(event)">ĐÓNG THƯ</div>
-            </div>
-        </div>
-        <div class="gift-box-body" id="target-box" onclick="toggleGift(event)"></div>
-    </div>
-
-    <div id="player"></div>
-
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        let isOpened = false;
-        let spawnInterval = null;
-        let currentRate = 120; 
-        let player;
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
 
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '0', width: '0',
-                videoId: 'Kw3EVHS_tfI',
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Kw3EVHS_tfI' },
-            });
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 5, 45);
+        controls.enableDamping = true;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
+
+        // 1. CHỮ TRẮNG
+        let charIndex = 0, stage = 0, timer = 0;
+        const textGeo = new THREE.BufferGeometry();
+        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 1 });
+        const textMesh = new THREE.Points(textGeo, textMat);
+        scene.add(textMesh);
+        let textVels = [];
+
+        function updateText(str) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1000; canvas.height = 200;
+            ctx.fillStyle = 'white'; 
+            ctx.font = 'bold 50px Arial Black';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(str, 500, 100);
+            const data = ctx.getImageData(0, 0, 1000, 200).data;
+            const pos = []; textVels = [];
+            for (let y = 0; y < 200; y += 5) {
+                for (let x = 0; x < 1000; x += 5) {
+                    if (data[(y * 1000 + x) * 4 + 3] > 128) {
+                        pos.push((x - 500) * 0.035, (100 - y) * 0.035, 0);
+                        textVels.push((Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1, (Math.random()-0.5)*0.1);
+                    }
+                }
+            }
+            textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('loading').style.opacity = '0';
-                setTimeout(() => { 
-                    document.getElementById('loading').style.display = 'none'; 
-                    setTimeout(() => {
-                        document.getElementById('gift-wrapper').classList.add('gift-at-center');
-                    }, 5000);
-                }, 800);
-            }, 1000);
-            startFalling();
+        // 2. CÂY THÔNG SỢI DÂY HỒNG PHÁT SÁNG (DÙNG CATMULLROMCURVE)
+        const curvePoints = [];
+        const numTurns = 12; // Số vòng xoắn
+        const ptsPerTurn = 100;
+        const totalPoints = numTurns * ptsPerTurn;
+
+        for (let i = 0; i <= totalPoints; i++) {
+            const t = i / totalPoints;
+            const angle = t * Math.PI * 2 * numTurns;
+            const radius = 10 * (1 - t);
+            const y = t * 25 - 12;
+            curvePoints.push(new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius));
+        }
+
+        const curve = new THREE.CatmullRomCurve3(curvePoints);
+        const tubeGeo = new THREE.TubeGeometry(curve, 256, 0.15, 8, false);
+        const tubeMat = new THREE.MeshStandardMaterial({
+            color: 0xff1493, // Hồng đậm (Deep Pink)
+            emissive: 0xff69b4, // Phát sáng hồng (Hot Pink)
+            emissiveIntensity: 5,
+            transparent: true,
+            opacity: 0
         });
+        const treeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+        scene.add(treeMesh);
 
-        function toggleGift(e) {
-            if (e) e.stopPropagation();
-            if (player && player.playVideo) player.playVideo();
-            
-            const wrapper = document.getElementById('gift-wrapper');
-            if (!isOpened) {
-                wrapper.classList.add('open');
-                isOpened = true;
-            } else {
-                wrapper.classList.remove('open');
-                setTimeout(() => {
-                    wrapper.classList.add('box-disappear');
-                    updateSpawnRate(50); // Rơi nhanh hơn sau khi mở
-                    setTimeout(() => {
-                        document.body.classList.add('pink-activated');
-                    }, 1500); 
-                }, 600);
+        // Vùng chạm để nổ quà
+        const hitZone = new THREE.Mesh(new THREE.CylinderGeometry(10, 2, 25, 16), new THREE.MeshBasicMaterial({visible: false}));
+        scene.add(hitZone);
+
+        // NGÔI SAO
+        const starShape = new THREE.Shape();
+        for(let i=0; i<10; i++) {
+            const r = i%2===0 ? 1.5 : 0.6;
+            const a = (i * Math.PI * 2) / 10 + Math.PI/2;
+            if(i===0) starShape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+            else starShape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+        }
+        const star = new THREE.Mesh(new THREE.ShapeGeometry(starShape), new THREE.MeshStandardMaterial({
+            color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 2, side: THREE.DoubleSide
+        }));
+        star.position.set(0, 13.5, 0); 
+        star.visible = false; scene.add(star);
+
+        // 3. HỘP QUÀ
+        const gifts = [];
+        const msgs = ["Giáng sinh ấm áp!", "Hạnh phúc!", "Vạn sự như ý!", "Luôn mỉm cười!", "Thành công!", "Bình an!", "Merry Xmas!", "Yêu đời!", "Quà xịn!", "May mắn!", "Mạnh khỏe!", "Vui vẻ!", "Tốt lành!", "Tiền tỷ!", "Mãi đỉnh!", "Tuyệt vời!", "Sức khỏe!", "Nụ cười!", "Gia đình!", "Thành đạt!"];
+        const giftGrp = new THREE.Group(); scene.add(giftGrp);
+
+        function createEmojiTex(color) {
+            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.font = '100px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = color; ctx.shadowBlur = 10; ctx.shadowColor = 'white';
+            ctx.fillText('🎁', 64, 70);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const gc = ['red', 'lime', 'cyan', 'yellow', 'magenta', 'orange', 'white'];
+        for(let i=0; i<20; i++) {
+            const tex = createEmojiTex(gc[i % gc.length]);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+            sprite.scale.set(4, 4, 1);
+            let a = (i / 20) * Math.PI * 2;
+            let d = 28 + Math.random() * 8;
+            sprite.position.set(Math.cos(a)*d, (Math.random()-0.5)*35, Math.sin(a)*d);
+            sprite.visible = false; giftGrp.add(sprite); gifts.push(sprite);
+        }
+
+        // TUYẾT RƠI
+        const sGeo = new THREE.BufferGeometry();
+        const sP = new Float32Array(6000 * 3);
+        for(let i=0; i<18000; i++) sP[i] = (Math.random()-0.5)*150;
+        sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.12})));
+
+        let exploded = false;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function handle(x, y) {
+            if(document.getElementById('messageBox').style.display === 'block') return;
+            mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+            if(stage === 2) {
+                const hits = raycaster.intersectObject(hitZone);
+                if(hits.length > 0) exploded = !exploded;
+                if(exploded) {
+                    const gHits = raycaster.intersectObjects(giftGrp.children);
+                    if(gHits.length > 0) {
+                        document.getElementById('messageText').innerText = msgs[gifts.indexOf(gHits[0].object)];
+                        document.getElementById('messageBox').style.display = 'block';
+                    }
+                }
             }
         }
+        window.addEventListener('mousedown', (e) => handle(e.clientX, e.clientY));
+        window.addEventListener('touchstart', (e) => handle(e.touches[0].clientX, e.touches[0].clientY));
+        function closeMessageBox(e) { e.stopPropagation(); document.getElementById('messageBox').style.display = 'none'; }
 
-        // Hàm tạo "Cây thông bằng dây hồng phát sáng"
-        function createPinkTree() {
-            const tree = document.createElement('div');
-            tree.className = 'pink-tree';
-            const layers = 7; // Số tầng của cuộn dây
-            for (let i = 0; i < layers; i++) {
-                const thread = document.createElement('div');
-                thread.className = 'neon-thread';
-                // Tạo độ rộng nhỏ dần lên phía trên để thành hình tam giác cây thông
-                thread.style.width = (layers - i) * 4 + 'px';
-                tree.appendChild(thread);
-            }
-            return tree;
-        }
-
-        function createFallingObject() {
-            const container = document.getElementById('snow-container');
-            const item = document.createElement('div');
-            item.className = 'falling-item';
-            const rand = Math.random();
-            let maxOpacity = 0.5;
-            const isPink = document.body.classList.contains('pink-activated');
-
-            if (rand < 0.4) { 
-                // Chữ Hot Phòng
-                item.innerText = 'hot phòng ~';
-                item.classList.add('falling-text');
-                item.style.fontSize = (Math.random() * 4 + 11) + 'px';
-                maxOpacity = 0.8;
-            } else if (rand < 0.7) { 
-                // THAY THẾ TẠI ĐÂY: Cây thông dây neon hồng
-                item.appendChild(createPinkTree());
-                maxOpacity = 1;
-            } else { 
-                // Bông tuyết
-                item.innerHTML = '❄';
-                item.style.color = isPink ? 'rgba(255, 182, 193, 0.7)' : 'rgba(255, 255, 255, 0.6)';
-            }
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
             
-            item.style.setProperty('--max-opacity', maxOpacity);
-            item.style.left = Math.random() * 100 + 'vw';
-            const duration = isPink ? (Math.random() * 3 + 3) : (Math.random() * 5 + 6);
-            item.style.animationDuration = duration + 's';
-            
-            container.appendChild(item);
-            setTimeout(() => { item.remove(); }, duration * 1000);
-        }
+            if(stage === 0) {
+                timer++;
+                if(timer%15===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
+                if(charIndex > 15 && timer > 130) stage = 1;
+            } else if(stage === 1) {
+                const p = textGeo.attributes.position.array;
+                for(let i=0; i<p.length; i++) p[i] += textVels[i]*1.5;
+                textGeo.attributes.position.needsUpdate = true;
+                textMat.opacity -= 0.005;
+                if(textMat.opacity <= 0) { stage = 2; }
+            } else if(stage === 2) {
+                // Hiện dần cây thông dây hồng
+                if(tubeMat.opacity < 1) tubeMat.opacity += 0.02;
+                
+                if(!exploded) {
+                    treeMesh.rotation.y += 0.01;
+                    treeMesh.scale.set(1, 1, 1);
+                    star.visible = true;
+                    star.rotation.y += 0.01;
+                } else {
+                    treeMesh.scale.set(0, 0, 0); // Ẩn cây khi nổ quà
+                    star.visible = false;
+                }
 
-        function startFalling() { spawnInterval = setInterval(createFallingObject, currentRate); }
-        function updateSpawnRate(newRate) {
-            clearInterval(spawnInterval);
-            currentRate = newRate;
-            spawnInterval = setInterval(createFallingObject, currentRate);
+                gifts.forEach(g => { 
+                    g.visible = exploded; 
+                    if(exploded) g.position.y += Math.sin(Date.now()*0.001 + gifts.indexOf(g))*0.025;
+                });
+            }
+
+            const sp = sGeo.attributes.position.array;
+            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.03; if(sp[i]<-70) sp[i]=70; }
+            sGeo.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
         }
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        animate();
     </script>
 </body>
 </html>
