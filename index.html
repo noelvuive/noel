@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NOEL ANH VINH - 🌲 RISING TREE V10</title>
+    <title>NOEL ANH VINH - 🌲 TO 3D TRANSFORMATION</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; font-family: sans-serif; }
         canvas { display: block; }
+        #messageBox {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 20px;
+            color: #ff1493; text-align: center; display: none; z-index: 1000;
+            width: 70%; border: 4px solid #f1c40f; box-shadow: 0 0 20px #ff69b4;
+        }
+        #messageBox button { margin-top: 10px; padding: 12px 25px; background: #ff1493; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #instruction {
+            position: absolute; bottom: 20px; width: 100%; text-align: center;
+            color: white; font-weight: bold; font-size: 18px; text-shadow: 0 0 10px red;
+            pointer-events: none; display: none;
+        }
     </style>
 </head>
 <body>
+    <div id="instruction">CHẠM VÀO CÂY THÔNG 🌲 ĐI ANH VINH!</div>
+    <div id="messageBox"><p id="messageText" style="font-weight:bold;"></p><button onclick="closeMessageBox(event)">ĐÓNG</button></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -21,17 +36,13 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 30);
+        camera.position.set(0, 5, 45);
         controls.enableDamping = true;
 
-        // Ánh sáng cho cây nó rực rỡ
-        scene.add(new THREE.AmbientLight(0xffffff, 1));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
+        scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
-        // 1. CHỮ MERRY CHRISTMAS (HẠT 3D)
-        let charIndex = 0, stage = 0, timer = 0;
+        // 1. CHỮ TAN BIẾN 3D
+        let charIndex = 0, stage = 0, timer = 0, treeCounter = 0;
         const textGeo = new THREE.BufferGeometry();
         const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 1 });
         const textMesh = new THREE.Points(textGeo, textMat);
@@ -42,9 +53,7 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 1000; canvas.height = 200;
-            ctx.fillStyle = 'white'; 
-            ctx.font = 'bold 60px Arial'; 
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white'; ctx.font = 'bold 50px Arial'; ctx.textAlign = 'center';
             ctx.fillText(str, 500, 100);
             const data = ctx.getImageData(0, 0, 1000, 200).data;
             const pos = []; textVels = [];
@@ -59,91 +68,122 @@
             textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
         }
 
-        // 2. TẠO CÂY THÔNG 🌲 ĐÚNG NGHĨA
-        const treeGroup = new THREE.Group();
-        const leafMat = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x003300 }); // Xanh phát sáng nhẹ
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4b2d0b });
+        // 2. ICON 🌲 (SPRITE) - ĐỂ BẤM VÀO
+        const emojiCanvas = document.createElement('canvas');
+        emojiCanvas.width = 128; emojiCanvas.height = 128;
+        const eCtx = emojiCanvas.getContext('2d');
+        eCtx.font = '100px serif'; eCtx.textAlign = 'center'; eCtx.textBaseline = 'middle';
+        eCtx.fillText('🌲', 64, 64);
+        const emojiTex = new THREE.CanvasTexture(emojiCanvas);
+        const emojiSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: emojiTex }));
+        emojiSprite.scale.set(8, 8, 1);
+        emojiSprite.visible = false;
+        scene.add(emojiSprite);
 
-        // Tầng lá (3 tầng)
-        for(let i=0; i<3; i++) {
-            const cone = new THREE.Mesh(new THREE.ConeGeometry(5 - i*1.2, 6, 16), leafMat);
-            cone.position.y = i * 3.5;
-            treeGroup.add(cone);
+        // 3. CÂY THÔNG 3D PHÁT SÁNG (GIẤU ĐI ĐÃ)
+        const maxPts = 4500;
+        const treeGeo = new THREE.BufferGeometry();
+        const curPos = new Float32Array(maxPts * 3);
+        const colors = new Float32Array(maxPts * 3);
+        const burstPos = new Float32Array(maxPts * 3);
+        for(let i=0; i<maxPts; i++) {
+            curPos[i*3] = 0; curPos[i*3+1] = -15; curPos[i*3+2] = 0;
+            burstPos[i*3] = (Math.random()-0.5)*65; burstPos[i*3+1] = (Math.random()-0.5)*50; burstPos[i*3+2] = (Math.random()-0.5)*65;
+            const isPink = Math.random() > 0.5;
+            colors[i*3] = isPink ? 1 : 0.18; colors[i*3+1] = isPink ? 0.41 : 1; colors[i*3+2] = isPink ? 0.7 : 0.18;
         }
-        // Gốc cây
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 4, 12), trunkMat);
-        trunk.position.y = -3;
-        treeGroup.add(trunk);
+        treeGeo.setAttribute('position', new THREE.BufferAttribute(curPos, 3));
+        treeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ size: 0.22, vertexColors: true, transparent: true }));
+        scene.add(treePoints); treePoints.visible = false;
 
-        // Ngôi sao 5 cánh (Đứng thẳng)
-        const starShape = new THREE.Shape();
-        for(let i=0; i<10; i++) {
-            const r = i%2===0 ? 1 : 0.4;
-            const a = (i * Math.PI * 2) / 10 + Math.PI/2;
-            if(i===0) starShape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
-            else starShape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+        const star = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshBasicMaterial({color: 0xffd700}));
+        star.position.y = 10.5; star.visible = false; scene.add(star);
+
+        // QUÀ & TUYẾT
+        const gifts = [];
+        const msgs = ["Anh Vinh Mãi Đỉnh!", "Giàu Sang Phú Quý!", "Noel Rực Rỡ!", "Đẹp Trai Vl!"];
+        const giftGrp = new THREE.Group(); scene.add(giftGrp);
+        for(let i=0; i<15; i++) {
+            const gCanvas = document.createElement('canvas'); gCanvas.width = 64; gCanvas.height = 64;
+            const gCtx = gCanvas.getContext('2d'); gCtx.font = '50px serif'; gCtx.fillText('🎁', 10, 50);
+            const gSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gCanvas) }));
+            gSprite.scale.set(4, 4, 1); gSprite.position.set((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*40);
+            gSprite.visible = false; giftGrp.add(gSprite); gifts.push(gSprite);
         }
-        const star = new THREE.Mesh(new THREE.ShapeGeometry(starShape), new THREE.MeshBasicMaterial({color: 0xffd700, side: THREE.DoubleSide}));
-        star.position.y = 8.5;
-        treeGroup.add(star);
 
-        treeGroup.position.y = -25; // Giấu dưới đất lúc đầu
-        scene.add(treeGroup);
-
-        // 3. TUYẾT RƠI (TĂNG SỐ LƯỢNG)
         const sGeo = new THREE.BufferGeometry();
-        const sCount = 5000;
-        const sP = new Float32Array(sCount * 3);
-        for(let i=0; i<sCount*3; i++) sP[i] = (Math.random()-0.5)*120;
+        const sP = new Float32Array(4000 * 3);
+        for(let i=0; i<12000; i++) sP[i] = (Math.random()-0.5)*150;
         sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        const snow = new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1}));
-        scene.add(snow);
+        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1})));
+
+        let exploded = false, treeRising = false;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function handle(x, y) {
+            mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+            if(emojiSprite.visible) {
+                const hits = raycaster.intersectObject(emojiSprite);
+                if(hits.length > 0) {
+                    emojiSprite.visible = false; document.getElementById('instruction').style.display = 'none';
+                    treeRising = true; treePoints.visible = true;
+                }
+            } else if(treeRising && treeCounter >= maxPts) {
+                const gHits = raycaster.intersectObjects(giftGrp.children);
+                if(gHits.length > 0) {
+                    document.getElementById('messageText').innerText = msgs[Math.floor(Math.random()*msgs.length)];
+                    document.getElementById('messageBox').style.display = 'block';
+                } else { exploded = !exploded; }
+            }
+        }
+        window.addEventListener('mousedown', (e) => handle(e.clientX, e.clientY));
+        function closeMessageBox(e) { e.stopPropagation(); document.getElementById('messageBox').style.display = 'none'; }
 
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-
-            // Giai đoạn 0: Hiện chữ
             if(stage === 0) {
                 timer++;
                 if(timer%10===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > 15 && timer > 150) stage = 1;
-            } 
-            // Giai đoạn 1: Chữ vỡ vụn tan biến 3D
-            else if(stage === 1) {
+                if(charIndex > 15 && timer > 120) stage = 1;
+            } else if(stage === 1) {
                 const p = textGeo.attributes.position.array;
-                for(let i=0; i<p.length; i++) {
-                    p[i] += textVels[i];
-                }
+                for(let i=0; i<p.length; i++) p[i] += textVels[i];
                 textGeo.attributes.position.needsUpdate = true;
                 textMat.opacity -= 0.01;
-                if(textMat.opacity <= 0) stage = 2;
-            } 
-            // Giai đoạn 2: Cây thông 🌲 trồi lên
-            else if(stage === 2) {
-                if(treeGroup.position.y < -2) {
-                    treeGroup.position.y += 0.12; // Tốc độ trồi lên
+                if(textMat.opacity <= 0) { stage = 2; emojiSprite.visible = true; document.getElementById('instruction').style.display = 'block'; }
+            } else if(stage === 2 && treeRising) {
+                const p = treeGeo.attributes.position.array;
+                if(treeCounter < maxPts) {
+                    for(let i=0; i<30; i++) {
+                        if(treeCounter < maxPts) {
+                            const t = treeCounter/maxPts, a = 0.5*treeCounter, r = 8*(1-t), y = t*20-10;
+                            p[treeCounter*3] = Math.cos(a)*r; p[treeCounter*3+1] = y; p[treeCounter*3+2] = Math.sin(a)*r;
+                            treeCounter++;
+                        }
+                    }
+                } else {
+                    star.visible = !exploded;
+                    for(let i=0; i<maxPts; i++) {
+                        const tX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*8*(1-i/maxPts));
+                        const tY = exploded ? burstPos[i*3+1] : (i/maxPts*20-10);
+                        const tZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*8*(1-i/maxPts));
+                        p[i*3] += (tX - p[i*3]) * 0.1; p[i*3+1] += (tY - p[i*3+1]) * 0.1; p[i*3+2] += (tZ - p[i*3+2]) * 0.1;
+                    }
+                    gifts.forEach(g => g.visible = exploded);
                 }
-                treeGroup.rotation.y += 0.01; // Xoay cây cho nghệ
+                treeGeo.attributes.position.needsUpdate = true;
+                if(!exploded) treePoints.rotation.y += 0.01;
             }
-
-            // Hiệu ứng tuyết rơi
             const sp = sGeo.attributes.position.array;
-            for(let i=1; i<sp.length; i+=3) { 
-                sp[i]-=0.08; 
-                if(sp[i]<-60) sp[i]=60; 
-            }
+            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.08; if(sp[i]<-70) sp[i]=70; }
             sGeo.attributes.position.needsUpdate = true;
-
             renderer.render(scene, camera);
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
