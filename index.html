@@ -1,189 +1,239 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>NOEL ANH VINH - 🌲 TO 3D TRANSFORMATION</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <title>Noel Gift - Hot Phòng</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; touch-action: none; font-family: sans-serif; }
-        canvas { display: block; }
-        #messageBox {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 20px;
-            color: #ff1493; text-align: center; display: none; z-index: 1000;
-            width: 70%; border: 4px solid #f1c40f; box-shadow: 0 0 20px #ff69b4;
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body, html { background: #0b1120; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+
+        #loading { position: fixed; inset: 0; background: #0b1120; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease; }
+        #loading img { width: 120px; }
+
+        #snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+
+        /* Hiệu ứng rơi chung */
+        .falling-item { 
+            position: absolute; top: -100px; white-space: nowrap; 
+            animation: fall linear forwards; 
+            color: rgba(255, 255, 255, 0.4);
         }
-        #messageBox button { margin-top: 10px; padding: 12px 25px; background: #ff1493; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        #instruction {
-            position: absolute; bottom: 20px; width: 100%; text-align: center;
-            color: white; font-weight: bold; font-size: 18px; text-shadow: 0 0 10px red;
-            pointer-events: none; display: none;
+        
+        @keyframes fall { 
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; } 
+            15% { opacity: var(--max-opacity); } 
+            100% { transform: translateY(110vh) rotate(20deg); opacity: 0; } 
         }
+
+        /* Style cho chữ Hot Phòng khi chuyển sang màu hồng */
+        .pink-activated .falling-text {
+            color: #FFB6C1 !important; 
+            text-shadow: 0 0 10px #FFB6C1, 0 0 20px #fff;
+            font-weight: bold;
+        }
+
+        /* --- CẤU TRÚC CÂY THÔNG DÂY NEON HỒNG --- */
+        .pink-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            filter: drop-shadow(0 0 5px #ff69b4);
+        }
+        .neon-thread {
+            height: 3px;
+            background: #ff69b4;
+            border-radius: 10px;
+            box-shadow: 0 0 8px #ff69b4, 0 0 15px #ff1493;
+            margin: 1px 0;
+            animation: glow 1.5s infinite alternate;
+        }
+        @keyframes glow {
+            from { opacity: 0.7; box-shadow: 0 0 5px #ff69b4; }
+            to { opacity: 1; box-shadow: 0 0 12px #ff1493, 0 0 20px #ff69b4; }
+        }
+
+        /* --- GIFT BOX --- */
+        .gift-container {
+            position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
+            z-index: 2000; cursor: pointer; 
+            transition: top 3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .gift-at-center { top: 50% !important; transform: translate(-50%, -50%) !important; }
+
+        .gift-box-body {
+            position: relative; width: 100px; height: 85px; background: #d42424;
+            border-radius: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            animation: swing 3s infinite ease-in-out;
+        }
+        @keyframes swing { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+        .gift-box-body::before { content: ''; position: absolute; width: 110px; height: 25px; background: #e74c3c; top: -25px; left: -5px; border-radius: 3px; z-index: 5; transition: 0.5s; }
+        .gift-box-body::after { content: ''; position: absolute; width: 20px; height: 100%; background: #ffdb11; left: 50%; transform: translateX(-50%); }
+
+        .letter {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 50px; height: 30px; background: #fff; border-radius: 5px;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 2;
+            overflow: hidden;
+        }
+        .open .letter {
+            width: 90vw; max-width: 380px; height: 75vh; bottom: 50%; 
+            transform: translateX(-50%) translateY(50%);
+            opacity: 1; padding: 20px; box-shadow: 0 0 40px rgba(255,255,255,0.2);
+            overflow-y: auto;
+        }
+        .open .gift-box-body::before { transform: translateY(-80px) rotate(-20deg); opacity: 0; }
+
+        .letter-text { display: none; text-align: left; color: #333; font-size: 14px; line-height: 1.6; }
+        .open .letter-text { display: block; }
+        .letter-header { text-align: center; color: #d42424; font-weight: bold; font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; }
+        .wish-item { margin-bottom: 15px; border-bottom: 1px dotted #eee; padding-bottom: 8px; }
+        .name { font-weight: bold; color: #c0392b; }
+
+        .signature { text-align: center; font-weight: bold; font-size: 24px; color: #d42424; margin-top: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .close-btn { display: block; width: 140px; margin: 25px auto 10px; padding: 12px; background: #d42424; color: #fff; text-align: center; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(212,36,36,0.4); }
+
+        .box-disappear { animation: rotateAndAway 1.8s forwards ease-in !important; pointer-events: none; }
+        @keyframes rotateAndAway {
+            0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, 120vh) rotate(540deg); opacity: 0; }
+        }
+        #player { position: absolute; width: 0; height: 0; opacity: 0; }
     </style>
 </head>
 <body>
-    <div id="instruction">CHẠM VÀO CÂY THÔNG 🌲 ĐI ANH VINH!</div>
-    <div id="messageBox"><p id="messageText" style="font-weight:bold;"></p><button onclick="closeMessageBox(event)">ĐÓNG</button></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <div id="loading"><img src="https://media4.giphy.com/media/0dAMYxFahMEvxW0ese/giphy.gif"></div>
+    <div id="snow-container"></div>
 
+    <div id="gift-wrapper" class="gift-container">
+        <div class="letter" id="letter-close">
+            <div class="letter-text">
+                <div class="letter-header">Hot Phòng ~</div>
+                
+                <div class="wish-item">Noen vui vẻ nha <span class="name">blewiz.12</span>, chúc bạn một mùa Giáng sinh luôn tỏa sáng! ✨</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">emm bé ~</span>, chúc bé luôn giữ trọn nét đáng yêu! 🧸</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">thi</span>, chúc thi một đêm lễ lung linh, xinh đẹp! ❄️</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">baolamm ?</span>, chúc bạn một mùa đông ấm áp! 🌟</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">ahh bo ~</span>, chúc bạn luôn vui tươi, rực rỡ! 🔥</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">lphuoc hau` 04</span>, chúc bạn an lành! 🎄</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">die.4u~06</span>, chúc bạn luôn ngọt ngào! 🎁</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">kieutien</span>, chúc bạn luôn rạng ngời! 💖</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">vợ nhi😋</span>, chúc bạn mãi xinh đẹp! 🍬</div>
+                <div class="wish-item">Noen vui vẻ nha <span class="name">luve.hurts_</span>, chúc bạn luôn bình yên! 🌈</div>
+
+                <div class="signature">BY HOT PHÒNG ~</div>
+                <div class="close-btn" onclick="toggleGift(event)">ĐÓNG THƯ</div>
+            </div>
+        </div>
+        <div class="gift-box-body" id="target-box" onclick="toggleGift(event)"></div>
+    </div>
+
+    <div id="player"></div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        document.body.appendChild(renderer.domElement);
+        let isOpened = false;
+        let spawnInterval = null;
+        let currentRate = 120; 
+        let player;
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 45);
-        controls.enableDamping = true;
-
-        scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-
-        // 1. CHỮ TAN BIẾN 3D
-        let charIndex = 0, stage = 0, timer = 0, treeCounter = 0;
-        const textGeo = new THREE.BufferGeometry();
-        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 1 });
-        const textMesh = new THREE.Points(textGeo, textMat);
-        scene.add(textMesh);
-        let textVels = [];
-
-        function updateText(str) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1000; canvas.height = 200;
-            ctx.fillStyle = 'white'; ctx.font = 'bold 50px Arial'; ctx.textAlign = 'center';
-            ctx.fillText(str, 500, 100);
-            const data = ctx.getImageData(0, 0, 1000, 200).data;
-            const pos = []; textVels = [];
-            for (let y = 0; y < 200; y += 5) {
-                for (let x = 0; x < 1000; x += 5) {
-                    if (data[(y * 1000 + x) * 4 + 3] > 128) {
-                        pos.push((x - 500) * 0.04, (100 - y) * 0.04, 0);
-                        textVels.push((Math.random()-0.5)*0.15, (Math.random()-0.5)*0.15, (Math.random()-0.5)*0.2);
-                    }
-                }
-            }
-            textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0', width: '0',
+                videoId: 'Kw3EVHS_tfI',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'Kw3EVHS_tfI' },
+            });
         }
 
-        // 2. ICON 🌲 (SPRITE) - ĐỂ BẤM VÀO
-        const emojiCanvas = document.createElement('canvas');
-        emojiCanvas.width = 128; emojiCanvas.height = 128;
-        const eCtx = emojiCanvas.getContext('2d');
-        eCtx.font = '100px serif'; eCtx.textAlign = 'center'; eCtx.textBaseline = 'middle';
-        eCtx.fillText('🌲', 64, 64);
-        const emojiTex = new THREE.CanvasTexture(emojiCanvas);
-        const emojiSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: emojiTex }));
-        emojiSprite.scale.set(8, 8, 1);
-        emojiSprite.visible = false;
-        scene.add(emojiSprite);
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => { 
+                    document.getElementById('loading').style.display = 'none'; 
+                    setTimeout(() => {
+                        document.getElementById('gift-wrapper').classList.add('gift-at-center');
+                    }, 5000);
+                }, 800);
+            }, 1000);
+            startFalling();
+        });
 
-        // 3. CÂY THÔNG 3D PHÁT SÁNG (GIẤU ĐI ĐÃ)
-        const maxPts = 4500;
-        const treeGeo = new THREE.BufferGeometry();
-        const curPos = new Float32Array(maxPts * 3);
-        const colors = new Float32Array(maxPts * 3);
-        const burstPos = new Float32Array(maxPts * 3);
-        for(let i=0; i<maxPts; i++) {
-            curPos[i*3] = 0; curPos[i*3+1] = -15; curPos[i*3+2] = 0;
-            burstPos[i*3] = (Math.random()-0.5)*65; burstPos[i*3+1] = (Math.random()-0.5)*50; burstPos[i*3+2] = (Math.random()-0.5)*65;
-            const isPink = Math.random() > 0.5;
-            colors[i*3] = isPink ? 1 : 0.18; colors[i*3+1] = isPink ? 0.41 : 1; colors[i*3+2] = isPink ? 0.7 : 0.18;
-        }
-        treeGeo.setAttribute('position', new THREE.BufferAttribute(curPos, 3));
-        treeGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        const treePoints = new THREE.Points(treeGeo, new THREE.PointsMaterial({ size: 0.22, vertexColors: true, transparent: true }));
-        scene.add(treePoints); treePoints.visible = false;
-
-        const star = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshBasicMaterial({color: 0xffd700}));
-        star.position.y = 10.5; star.visible = false; scene.add(star);
-
-        // QUÀ & TUYẾT
-        const gifts = [];
-        const msgs = ["Anh Vinh Mãi Đỉnh!", "Giàu Sang Phú Quý!", "Noel Rực Rỡ!", "Đẹp Trai Vl!"];
-        const giftGrp = new THREE.Group(); scene.add(giftGrp);
-        for(let i=0; i<15; i++) {
-            const gCanvas = document.createElement('canvas'); gCanvas.width = 64; gCanvas.height = 64;
-            const gCtx = gCanvas.getContext('2d'); gCtx.font = '50px serif'; gCtx.fillText('🎁', 10, 50);
-            const gSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gCanvas) }));
-            gSprite.scale.set(4, 4, 1); gSprite.position.set((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*40);
-            gSprite.visible = false; giftGrp.add(gSprite); gifts.push(gSprite);
-        }
-
-        const sGeo = new THREE.BufferGeometry();
-        const sP = new Float32Array(4000 * 3);
-        for(let i=0; i<12000; i++) sP[i] = (Math.random()-0.5)*150;
-        sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1})));
-
-        let exploded = false, treeRising = false;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        function handle(x, y) {
-            mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
-            raycaster.setFromCamera(mouse, camera);
-            if(emojiSprite.visible) {
-                const hits = raycaster.intersectObject(emojiSprite);
-                if(hits.length > 0) {
-                    emojiSprite.visible = false; document.getElementById('instruction').style.display = 'none';
-                    treeRising = true; treePoints.visible = true;
-                }
-            } else if(treeRising && treeCounter >= maxPts) {
-                const gHits = raycaster.intersectObjects(giftGrp.children);
-                if(gHits.length > 0) {
-                    document.getElementById('messageText').innerText = msgs[Math.floor(Math.random()*msgs.length)];
-                    document.getElementById('messageBox').style.display = 'block';
-                } else { exploded = !exploded; }
+        function toggleGift(e) {
+            if (e) e.stopPropagation();
+            if (player && player.playVideo) player.playVideo();
+            
+            const wrapper = document.getElementById('gift-wrapper');
+            if (!isOpened) {
+                wrapper.classList.add('open');
+                isOpened = true;
+            } else {
+                wrapper.classList.remove('open');
+                setTimeout(() => {
+                    wrapper.classList.add('box-disappear');
+                    updateSpawnRate(50); // Rơi nhanh hơn sau khi mở
+                    setTimeout(() => {
+                        document.body.classList.add('pink-activated');
+                    }, 1500); 
+                }, 600);
             }
         }
-        window.addEventListener('mousedown', (e) => handle(e.clientX, e.clientY));
-        function closeMessageBox(e) { e.stopPropagation(); document.getElementById('messageBox').style.display = 'none'; }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            if(stage === 0) {
-                timer++;
-                if(timer%10===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > 15 && timer > 120) stage = 1;
-            } else if(stage === 1) {
-                const p = textGeo.attributes.position.array;
-                for(let i=0; i<p.length; i++) p[i] += textVels[i];
-                textGeo.attributes.position.needsUpdate = true;
-                textMat.opacity -= 0.01;
-                if(textMat.opacity <= 0) { stage = 2; emojiSprite.visible = true; document.getElementById('instruction').style.display = 'block'; }
-            } else if(stage === 2 && treeRising) {
-                const p = treeGeo.attributes.position.array;
-                if(treeCounter < maxPts) {
-                    for(let i=0; i<30; i++) {
-                        if(treeCounter < maxPts) {
-                            const t = treeCounter/maxPts, a = 0.5*treeCounter, r = 8*(1-t), y = t*20-10;
-                            p[treeCounter*3] = Math.cos(a)*r; p[treeCounter*3+1] = y; p[treeCounter*3+2] = Math.sin(a)*r;
-                            treeCounter++;
-                        }
-                    }
-                } else {
-                    star.visible = !exploded;
-                    for(let i=0; i<maxPts; i++) {
-                        const tX = exploded ? burstPos[i*3] : (Math.cos(0.5*i)*8*(1-i/maxPts));
-                        const tY = exploded ? burstPos[i*3+1] : (i/maxPts*20-10);
-                        const tZ = exploded ? burstPos[i*3+2] : (Math.sin(0.5*i)*8*(1-i/maxPts));
-                        p[i*3] += (tX - p[i*3]) * 0.1; p[i*3+1] += (tY - p[i*3+1]) * 0.1; p[i*3+2] += (tZ - p[i*3+2]) * 0.1;
-                    }
-                    gifts.forEach(g => g.visible = exploded);
-                }
-                treeGeo.attributes.position.needsUpdate = true;
-                if(!exploded) treePoints.rotation.y += 0.01;
+        // Hàm tạo "Cây thông bằng dây hồng phát sáng"
+        function createPinkTree() {
+            const tree = document.createElement('div');
+            tree.className = 'pink-tree';
+            const layers = 7; // Số tầng của cuộn dây
+            for (let i = 0; i < layers; i++) {
+                const thread = document.createElement('div');
+                thread.className = 'neon-thread';
+                // Tạo độ rộng nhỏ dần lên phía trên để thành hình tam giác cây thông
+                thread.style.width = (layers - i) * 4 + 'px';
+                tree.appendChild(thread);
             }
-            const sp = sGeo.attributes.position.array;
-            for(let i=1; i<sp.length; i+=3) { sp[i]-=0.08; if(sp[i]<-70) sp[i]=70; }
-            sGeo.attributes.position.needsUpdate = true;
-            renderer.render(scene, camera);
+            return tree;
         }
-        animate();
+
+        function createFallingObject() {
+            const container = document.getElementById('snow-container');
+            const item = document.createElement('div');
+            item.className = 'falling-item';
+            const rand = Math.random();
+            let maxOpacity = 0.5;
+            const isPink = document.body.classList.contains('pink-activated');
+
+            if (rand < 0.4) { 
+                // Chữ Hot Phòng
+                item.innerText = 'hot phòng ~';
+                item.classList.add('falling-text');
+                item.style.fontSize = (Math.random() * 4 + 11) + 'px';
+                maxOpacity = 0.8;
+            } else if (rand < 0.7) { 
+                // THAY THẾ TẠI ĐÂY: Cây thông dây neon hồng
+                item.appendChild(createPinkTree());
+                maxOpacity = 1;
+            } else { 
+                // Bông tuyết
+                item.innerHTML = '❄';
+                item.style.color = isPink ? 'rgba(255, 182, 193, 0.7)' : 'rgba(255, 255, 255, 0.6)';
+            }
+            
+            item.style.setProperty('--max-opacity', maxOpacity);
+            item.style.left = Math.random() * 100 + 'vw';
+            const duration = isPink ? (Math.random() * 3 + 3) : (Math.random() * 5 + 6);
+            item.style.animationDuration = duration + 's';
+            
+            container.appendChild(item);
+            setTimeout(() => { item.remove(); }, duration * 1000);
+        }
+
+        function startFalling() { spawnInterval = setInterval(createFallingObject, currentRate); }
+        function updateSpawnRate(newRate) {
+            clearInterval(spawnInterval);
+            currentRate = newRate;
+            spawnInterval = setInterval(createFallingObject, currentRate);
+        }
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
