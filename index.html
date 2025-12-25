@@ -1,183 +1,175 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PINK NEON XMAS - FINAL FIX</title>
+    <title>3D NEON DOODLE - MAGIC 🌟</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
-        #btnReset {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            padding: 15px 30px; background: #ff00ff; color: #fff; border: none;
-            border-radius: 50px; cursor: pointer; font-weight: bold; display: none;
-            box-shadow: 0 0 20px #ff00ff; z-index: 100; font-family: sans-serif;
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+        canvas { display: block; }
+        
+        /* Bảng vẽ rơi từ trên xuống */
+        #drawingContainer {
+            position: absolute; top: -600px; left: 50%; transform: translateX(-50%);
+            width: 300px; height: 400px; background: #222; border: 4px solid #ff00ff;
+            border-radius: 15px; z-index: 1000; box-shadow: 0 0 30px #ff00ff;
+            transition: top 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; padding: 10px;
+        }
+        
+        #paintCanvas { background: #000; border-radius: 10px; touch-action: none; cursor: crosshair; }
+        
+        #controls { margin-top: 15px; display: flex; gap: 10px; }
+        
+        button {
+            padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold;
+            cursor: pointer; transition: 0.2s;
+        }
+        
+        #okBtn { background: #ff00ff; color: white; }
+        #clearBtn { background: #444; color: white; }
+        button:active { transform: scale(0.9); }
+
+        #hint {
+            position: absolute; bottom: 20px; width: 100%; text-align: center;
+            color: #ff00ff; font-weight: bold; pointer-events: none; opacity: 0;
+            transition: 1s;
         }
     </style>
 </head>
 <body>
-    <button id="btnReset" onclick="resetTree()">XEM LẠI CÂY THÔNG 🎄</button>
+
+    <div id="drawingContainer">
+        <h3 style="color: #ff00ff; margin: 5px;">VẼ GÌ ĐÓ ĐI ✨</h3>
+        <canvas id="paintCanvas" width="280" height="300"></canvas>
+        <div id="controls">
+            <button id="clearBtn">XOÁ</button>
+            <button id="okBtn">OK - BIẾN HÌNH!</button>
+        </div>
+    </div>
+
+    <div id="hint">DÙNG TAY XOAY HÌNH VẼ 3D CỦA BẠN! 💫</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
+        // --- 1. SETUP THREE.JS ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 10, 50);
-        controls.enableDamping = true;
+        camera.position.set(0, 0, 50);
+        controls.enabled = false; // Tắt xoay khi đang vẽ
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        // --- 2. LOGIC BẢNG VẼ 2D ---
+        const pCanvas = document.getElementById('paintCanvas');
+        const ctx = pCanvas.getContext('2d');
+        let drawing = false;
+        let paths = []; // Lưu các nét vẽ
 
-        // --- 1. CHỮ TAN VỠ ---
-        let stage = 0, charIndex = 0, timer = 0;
-        const textGeo = new THREE.BufferGeometry();
-        const textMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true });
-        const textMesh = new THREE.Points(textGeo, textMat);
-        scene.add(textMesh);
-        let textVels = [];
+        // Hiệu ứng rơi bảng vẽ
+        setTimeout(() => { document.getElementById('drawingContainer').style.top = '50px'; }, 500);
 
-        function updateText(str) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1000; canvas.height = 200;
-            ctx.fillStyle = 'white'; ctx.font = 'bold 60px Arial'; ctx.textAlign = 'center';
-            ctx.fillText(str, 500, 100);
-            const data = ctx.getImageData(0,0,1000,200).data;
-            const pos = []; textVels = [];
-            for(let y=0; y<200; y+=5) {
-                for(let x=0; x<1000; x+=5) {
-                    if(data[(y*1000+x)*4+3]>128) {
-                        pos.push((x-500)*0.04, (100-y)*0.04, 0);
-                        textVels.push((Math.random()-0.5)*0.25, (Math.random()-0.5)*0.25, (Math.random()-0.5)*0.25);
-                    }
-                }
-            }
-            textGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        function getPos(e) {
+            const rect = pCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        // --- 2. CÂY THÔNG HỒNG PHÁT SÁNG ---
-        const curvePts = [];
-        for(let i=0; i<=1500; i++) {
-            const t = i/1500;
-            const a = t * Math.PI * 2 * 16;
-            const r = 12 * (1-t);
-            curvePts.push(new THREE.Vector3(Math.cos(a)*r, t*24-12, Math.sin(a)*r));
-        }
-        const treeCurve = new THREE.CatmullRomCurve3(curvePts);
-        const treeGeo = new THREE.TubeGeometry(treeCurve, 600, 0.3, 8, false);
-        const treeMat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 10, transparent: true });
-        const treeMesh = new THREE.Mesh(treeGeo, treeMat);
-        treeGeo.setDrawRange(0, 0);
-        scene.add(treeMesh);
-
-        // Vùng chạm cảm ứng (Quan trọng để bấm là nổ)
-        const hitZone = new THREE.Mesh(
-            new THREE.CylinderGeometry(0, 14, 26, 12),
-            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-        );
-        scene.add(hitZone);
-
-        // Ngôi sao 5 cánh chuẩn
-        const starShape = new THREE.Shape();
-        for(let i=0; i<10; i++) {
-            const r = i%2===0 ? 2.5 : 1;
-            const a = (i * Math.PI * 2) / 10 + Math.PI/2;
-            if(i===0) starShape.moveTo(Math.cos(a)*r, Math.sin(a)*r);
-            else starShape.lineTo(Math.cos(a)*r, Math.sin(a)*r);
-        }
-        const star = new THREE.Mesh(
-            new THREE.ExtrudeGeometry(starShape, {depth: 0.4, bevelEnabled: false}),
-            new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffaa00, emissiveIntensity: 5})
-        );
-        star.position.y = 13; star.visible = false;
-        scene.add(star);
-
-        // --- 3. HẠT NỔ ---
-        const bCount = 10000;
-        const bGeo = new THREE.BufferGeometry();
-        const bP = new Float32Array(bCount * 3);
-        const bV = new Float32Array(bCount * 3);
-        for(let i=0; i<bCount*3; i++) bV[i] = (Math.random()-0.5)*2;
-        bGeo.setAttribute('position', new THREE.BufferAttribute(bP, 3));
-        const bMat = new THREE.PointsMaterial({ color: 0xff00ff, size: 0.25, transparent: true, opacity: 0 });
-        const bPoints = new THREE.Points(bGeo, bMat);
-        scene.add(bPoints);
-
-        // Tuyết
-        const sP = new Float32Array(3000 * 3);
-        for(let i=0; i<9000; i++) sP[i] = (Math.random()-0.5)*200;
-        const sGeo = new THREE.BufferGeometry();
-        sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-        scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.15})));
-
-        let exploded = false, drawProgress = 0;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        // CLICK LÀ NỔ
-        window.addEventListener('pointerdown', (e) => {
-            if(stage < 2 || exploded) return;
-            mouse.x = (e.clientX/window.innerWidth)*2-1;
-            mouse.y = -(e.clientY/window.innerHeight)*2+1;
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(hitZone);
-            if(intersects.length > 0) {
-                exploded = true;
-                document.getElementById('btnReset').style.display = 'block';
-            }
+        pCanvas.addEventListener('pointerdown', (e) => {
+            drawing = true;
+            paths.push([]); // Bắt đầu nét mới
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
         });
 
-        function resetTree() {
-            exploded = false; drawProgress = 0; star.visible = false;
-            treeGeo.setDrawRange(0, 0);
-            const p = bGeo.attributes.position.array;
-            for(let i=0; i<bCount*3; i++) p[i] = 0;
-            document.getElementById('btnReset').style.display = 'none';
-        }
+        pCanvas.addEventListener('pointermove', (e) => {
+            if (!drawing) return;
+            const pos = getPos(e);
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            paths[paths.length - 1].push({ x: (pos.x - 140) * 0.15, y: (150 - pos.y) * 0.15 });
+        });
+
+        window.addEventListener('pointerup', () => drawing = false);
+
+        document.getElementById('clearBtn').onclick = () => {
+            ctx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+            paths = [];
+        };
+
+        // --- 3. BIẾN HÌNH 2D THÀNH 3D ---
+        const doodleGroup = new THREE.Group();
+        scene.add(doodleGroup);
+
+        document.getElementById('okBtn').onclick = () => {
+            if (paths.length === 0) return;
+
+            // Ẩn bảng vẽ
+            document.getElementById('drawingContainer').style.top = '-600px';
+            document.getElementById('hint').style.opacity = '1';
+            controls.enabled = true;
+
+            // Tạo các dải Neon 3D từ nét vẽ
+            paths.forEach(path => {
+                if (path.length < 2) return;
+                const points = path.map(p => new THREE.Vector3(p.x, p.y, 0));
+                const curve = new THREE.CatmullRomCurve3(points);
+                const geometry = new THREE.TubeGeometry(curve, path.length * 2, 0.4, 8, false);
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 5 
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                doodleGroup.add(mesh);
+            });
+
+            // Thêm ánh sáng rực rỡ
+            const light = new THREE.PointLight(0xff00ff, 2, 100);
+            scene.add(light);
+        };
+
+        // --- 4. TUYẾT RƠI NỀN ---
+        const sGeo = new THREE.BufferGeometry();
+        const sP = new Float32Array(2000 * 3);
+        for(let i=0; i<6000; i++) sP[i] = (Math.random()-0.5)*100;
+        sGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
+        const snow = new THREE.Points(sGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1}));
+        scene.add(snow);
 
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
 
             // Tuyết rơi
-            const sPos = sGeo.attributes.position.array;
-            for(let i=1; i<sPos.length; i+=3) { sPos[i]-=0.15; if(sPos[i]<-100) sPos[i]=100; }
+            const pos = sGeo.attributes.position.array;
+            for(let i=1; i<pos.length; i+=3) {
+                pos[i] -= 0.1;
+                if(pos[i] < -50) pos[i] = 50;
+            }
             sGeo.attributes.position.needsUpdate = true;
 
-            if(stage === 0) {
-                timer++;
-                if(timer%10===0 && charIndex <= 15) updateText("MERRY CHRISTMAS".substring(0, charIndex++));
-                if(charIndex > 15 && timer > 80) stage = 1;
-            } else if(stage === 1) {
-                const p = textGeo.attributes.position.array;
-                for(let i=0; i<p.length; i++) p[i] += textVels[i];
-                textGeo.attributes.position.needsUpdate = true;
-                textMat.opacity -= 0.02;
-                if(textMat.opacity <= 0) stage = 2;
-            } else if(stage === 2) {
-                if(!exploded) {
-                    if(drawProgress < 1000000) drawProgress += 1500; // Cuộn mượt và nhanh
-                    treeGeo.setDrawRange(0, drawProgress);
-                    treeMesh.visible = true;
-                    star.visible = (drawProgress > 500000);
-                    star.rotation.y += 0.05;
-                    bMat.opacity = 0;
-                } else {
-                    treeMesh.visible = false; star.visible = false;
-                    bMat.opacity = 1;
-                    const p = bGeo.attributes.position.array;
-                    for(let i=0; i<bCount*3; i++) p[i] += bV[i];
-                    bGeo.attributes.position.needsUpdate = true;
-                }
+            // Xoay nhẹ hình vẽ 3D cho lung linh
+            if (doodleGroup.children.length > 0) {
+                doodleGroup.rotation.y += 0.005;
             }
+
             renderer.render(scene, camera);
         }
         animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
