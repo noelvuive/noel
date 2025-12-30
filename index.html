@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 - BON VINH</title>
+    <title>2026 - BON VINH BOSS</title>
     <style>
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; overflow: hidden; 
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             touch-action: none;
         }
-        canvas { position: absolute; top: 0; left: 0; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 5; }
         #text-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; font-size: 80px; font-weight: bold; text-align: center;
-            z-index: 10; pointer-events: none; width: 90%;
-            letter-spacing: 10px;
+            color: #fff; font-size: 70px; font-weight: bold; text-align: center;
+            z-index: 10; pointer-events: none; width: 95%;
+            letter-spacing: 35px; /* Đéo bao giờ dính chữ nữa */
+            white-space: pre-wrap;
+            line-height: 1.6;
         }
         .wish-text { 
             font-size: 22px !important; 
-            color: #ff4d4d !important; 
-            letter-spacing: 2px !important; 
-            line-height: 1.8; /* Khoảng cách dòng rộng */
-            font-weight: 500 !important;
-            word-wrap: break-word;
+            color: #ff3333 !important; 
+            letter-spacing: 5px !important; 
+            font-weight: bold !important;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
         }
         #pen {
-            position: absolute; font-size: 30px; z-index: 20;
+            position: absolute; font-size: 35px; z-index: 20;
             display: none; pointer-events: none;
-            margin-top: -25px;
+            transition: none;
         }
     </style>
 </head>
@@ -48,128 +49,114 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let particles = [];
     const wishes = [
-        "Năm mới 2026 đã gõ cửa rồi,\nChúc bạn luôn rực rỡ như ánh bình minh,\nVạn sự hanh thông, tỷ sự như mơ,\nSức khỏe dồi dào, tiền vào như nước.",
-        "Gửi ngàn lời chúc tốt đẹp nhất đến bạn,\nHy vọng 2026 sẽ là một năm đột phá,\nThành công vang dội trên mọi nẻo đường,\nBình an và hạnh phúc bên người thân yêu.",
-        "Mọi dự định ấp ủ bấy lâu nay,\nSẽ đều trở thành hiện thực trong năm nay,\nLuôn giữ vững niềm tin và bản lĩnh,\nChào đón một năm 2026 đầy bùng nổ!"
+        "Chúc bạn năm 2026 rực rỡ,\nVạn sự hanh thông,\nSức khỏe dồi dào,\nHạnh phúc đong đầy.",
+        "Gửi ngàn lời chúc tốt đẹp nhất,\nHy vọng 2026 là năm bùng nổ,\nThành công vang dội,\nMọi điều như ý!"
     ];
 
-    async function typeText(text, delay = 100) {
+    function getHeartPoint(t, scale) {
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        return {
+            x: x * scale + canvas.width / 2,
+            y: y * scale + canvas.height / 2
+        };
+    }
+
+    async function typeText(text, isWish = false) {
         textOverlay.innerText = "";
-        const lines = text.split('\n');
-        for (let line of lines) {
-            for (let char of line) {
-                textOverlay.innerText += char;
-                await new Promise(r => setTimeout(r, delay));
-            }
-            textOverlay.innerText += '\n';
+        if(isWish) textOverlay.classList.add('wish-text');
+        else textOverlay.classList.remove('wish-text');
+
+        const chars = Array.from(text);
+        for (let char of chars) {
+            textOverlay.innerText += char;
+            await new Promise(r => setTimeout(r, 100));
         }
     }
 
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x; this.y = y; this.color = color;
-            this.size = Math.random() * 2 + 1;
-            this.vx = (Math.random() - 0.5) * 10;
-            this.vy = (Math.random() - 0.5) * 10;
-            this.life = 1;
-        }
-        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
-        draw() {
-            ctx.fillStyle = this.color;
-            ctx.globalAlpha = this.life;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    function explode(x, y, color) {
-        for(let i=0; i<50; i++) particles.push(new Particle(x, y, color));
-    }
-
-    async function startFlow() {
-        // 1. Đếm ngược 3 2 1 (Bình thường như cũ)
+    async function start() {
+        // 1. Đếm ngược 3 2 1
         for (let i = 3; i > 0; i--) {
             textOverlay.innerText = i;
             await new Promise(r => setTimeout(r, 1000));
         }
         textOverlay.innerText = "";
 
-        // 2. Gõ chữ 2026
-        await typeText("2026", 200);
-        await new Promise(r => setTimeout(r, 1000));
+        // 2. Gõ 2026
+        await typeText("2026");
+        await new Promise(r => setTimeout(r, 1500));
         textOverlay.innerText = "";
 
-        // 3. Hiện bút vẽ và tô màu trái tim
+        // 3. Hiện bút và vẽ
         pen.style.display = "block";
         await new Promise(r => setTimeout(r, 1000));
 
-        const scale = 12;
+        const scale = window.innerWidth < 500 ? 10 : 15;
         ctx.strokeStyle = "red";
         ctx.lineWidth = 5;
         ctx.lineCap = "round";
         
-        // Vẽ đường viền
+        // Bắt đầu vẽ nét
+        let t = 0;
         ctx.beginPath();
-        for (let t = 0; t <= Math.PI * 2; t += 0.05) {
-            const x = 16 * Math.pow(Math.sin(t), 3) * scale + canvas.width/2;
-            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale + canvas.height/2;
-            ctx.lineTo(x, y);
+        const startP = getHeartPoint(0, scale);
+        ctx.moveTo(startP.x, startP.y);
+
+        while (t <= Math.PI * 2) {
+            const p = getHeartPoint(t, scale);
+            ctx.lineTo(p.x, p.y);
             ctx.stroke();
-            pen.style.left = x + "px";
-            pen.style.top = y + "px";
-            await new Promise(r => setTimeout(r, 30));
+            pen.style.left = (p.x) + "px";
+            pen.style.top = (p.y) + "px";
+            t += 0.05;
+            await new Promise(r => setTimeout(r, 20));
         }
         ctx.closePath();
         
-        // Tô màu đỏ
+        // 4. Tô màu đỏ rực
         ctx.fillStyle = "red";
         ctx.fill();
         pen.style.display = "none";
         await new Promise(r => setTimeout(r, 1500));
 
-        // 4. Tan biến trái tim (3D particles)
-        for(let i=0; i<300; i++) {
-            explode(canvas.width/2 + (Math.random()-0.5)*200, canvas.height/2 + (Math.random()-0.5)*200, 'red');
-        }
-        
-        // Xóa hình vẽ để chuẩn bị hiện lời chúc
-        let fade = 1;
-        while(fade > 0) {
-            ctx.clearRect(0,0, canvas.width, canvas.height);
-            fade -= 0.1;
-            await new Promise(r => setTimeout(r, 50));
+        // 5. Hiệu ứng tan biến (Hạt particles ảo ma)
+        let particles = [];
+        for(let i=0; i<400; i++) {
+            const p = getHeartPoint(Math.random() * Math.PI * 2, scale);
+            particles.push({
+                x: p.x, y: p.y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 1
+            });
         }
 
-        // 5. Hiện lời chúc gõ máy tính (Dài, xuống dòng, không dính)
-        textOverlay.classList.add('wish-text');
+        const fadeOut = setInterval(() => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                ctx.fillStyle = `rgba(255, 0, 0, ${p.life})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            particles = particles.filter(p => p.life > 0);
+            if(particles.length === 0) clearInterval(fadeOut);
+        }, 30);
+
+        await new Promise(r => setTimeout(r, 2000));
+
+        // 6. Lời chúc
         for (let wish of wishes) {
-            await typeText(wish, 80);
-            await new Promise(r => setTimeout(r, 3000));
-            explode(canvas.width/2, canvas.height/2, '#fff');
+            await typeText(wish, true);
+            await new Promise(r => setTimeout(r, 4000));
             textOverlay.innerText = "";
             await new Promise(r => setTimeout(r, 1000));
         }
     }
 
-    function animate() {
-        // Chỉ clear vùng hạt để không ảnh hưởng đến hình trái tim đang vẽ
-        // (Nhưng ở đây ta dùng logic vẽ xong rồi mới clear nên clear toàn bộ là ok)
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Nếu đang trong quá trình vẽ trái tim, hình vẽ phải được giữ lại
-        // Do startFlow() điều khiển việc vẽ, ta cần lưu trạng thái hoặc vẽ lại
-        // Ở bản này em dùng logic vẽ đè trực tiếp lên canvas.
-        
-        particles = particles.filter(p => p.life > 0);
-        particles.forEach(p => { p.update(); p.draw(); });
-        requestAnimationFrame(animate);
-    }
-    // Ghi chú: Để hình trái tim giữ nguyên khi vẽ, ta dùng startFlow vẽ trực tiếp.
-    startFlow();
-    animate();
+    window.onload = start;
 </script>
 </body>
 </html>
