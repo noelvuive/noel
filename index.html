@@ -3,21 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 - ĐẲNG CẤP BON VINH</title>
+    <title>2026 - BON VINH CHỐT HẠ</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Arial', sans-serif; }
         canvas { position: absolute; top: 0; left: 0; z-index: 5; }
+        
+        /* Chữ lời chúc */
         #text-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; text-align: center; z-index: 10; pointer-events: none; width: 100%;
+            color: #ff3333; text-align: center; z-index: 10; pointer-events: none;
+            width: 100%; font-size: 28px; font-weight: bold;
+            display: flex; justify-content: center; gap: 15px; /* Éo bao giờ dính chữ */
         }
-        .char { display: inline-block; font-size: 50px; font-weight: bold; color: #fff; text-shadow: 0 0 20px #fff; margin: 0 5px; }
-        .wish-text .char { font-size: 28px !important; color: #ff3333 !important; text-shadow: 0 0 10px #ff0000; }
-        #pen { position: absolute; font-size: 30px; z-index: 20; display: none; pointer-events: none; }
+
+        /* Chữ 2026 vĩnh viễn */
+        #final-2026 {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #fff; font-size: 85px; font-weight: bold; z-index: 15;
+            display: none; letter-spacing: 25px; text-shadow: 0 0 30px #fff;
+        }
+
+        #pen { position: absolute; font-size: 35px; z-index: 20; display: none; transform: translate(-10px, -35px); }
     </style>
 </head>
 <body>
     <div id="text-overlay"></div>
+    <div id="final-2026">2026</div>
     <div id="pen">✏️</div>
     <canvas id="canvas"></canvas>
 
@@ -25,116 +36,79 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const textOverlay = document.getElementById('text-overlay');
+    const finalDisplay = document.getElementById('final-2026');
     const pen = document.getElementById('pen');
+    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let particles = [];
-    let fireworks = [];
-    let state = "START";
+    let particles = [], fireworks = [], state = "START";
     const wishes = [
-        "Chúc Mừng Năm Mới 2026",
-        "Vạn Sự Hanh Thông Tỷ Sự Như Mơ",
-        "Sức Khỏe Dồi Dào Tài Lộc Tới",
-        "Hạnh Phúc Đong Đầy Mọi Nẻo Đường",
-        "Thành Công Vang Dội Tuổi Trẻ",
-        "Bình An Mạnh Khỏe Mỗi Ngày",
-        "Chào Đón 2026 Bùng Nổ Rạng Ngời"
+        "Chúc Mừng Năm Mới 2026", "Vạn Sự Hanh Thông", "Sức Khỏe Dồi Dào", 
+        "Tài Lộc Tới Nhà", "Thành Công Rực Rỡ", "Bình An Mỗi Ngày", "2026 Bùng Nổ"
     ];
 
-    async function typeEffect(text, isWish = true) {
+    async function typeText(text, isBig = false) {
         textOverlay.innerHTML = "";
-        textOverlay.className = isWish ? "wish-text" : "";
+        if (state === "FINISHED") return; 
         for (let char of text) {
             let span = document.createElement("span");
-            span.className = "char";
-            span.innerText = char;
+            span.style.fontSize = isBig ? "80px" : "28px";
+            span.style.color = isBig ? "#fff" : "#ff3333";
+            span.innerText = char === " " ? "\u00A0" : char;
             textOverlay.appendChild(span);
             await new Promise(r => setTimeout(r, 100));
-        }
-        if (isWish) {
-            await new Promise(r => setTimeout(r, 1200));
-            textOverlay.style.transition = "0.5s opacity";
-            textOverlay.style.opacity = "0";
-            await new Promise(r => setTimeout(r, 500));
-            textOverlay.innerHTML = "";
-            textOverlay.style.opacity = "1";
-        }
-    }
-
-    class Firework {
-        constructor(x, y, targetY) {
-            this.x = x; this.y = y; this.targetY = targetY;
-            this.speed = 2; // Phóng chậm
-            this.alive = true;
-            this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-        }
-        update() {
-            this.y -= this.speed;
-            if (this.y <= this.targetY) { this.explode(); this.alive = false; }
-        }
-        draw() {
-            ctx.fillStyle = "#fff";
-            ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); ctx.fill();
-        }
-        explode() {
-            for (let i = 0; i < 40; i++) { // Thu nhỏ pháo hoa lại
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 4;
-                particles.push(new Particle(this.x, this.y, this.color, Math.cos(angle) * speed, Math.sin(angle) * speed));
-            }
         }
     }
 
     class Particle {
-        constructor(x, y, color, vx, vy) {
+        constructor(x, y, color) {
             this.x = x; this.y = y; this.color = color;
-            this.vx = vx; this.vy = vy;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            this.vx = Math.cos(angle) * speed;
+            this.vy = Math.sin(angle) * speed;
             this.life = 1;
-            this.gravity = 0.03; // Rơi rất chậm
         }
         update() {
             this.x += this.vx; this.y += this.vy;
-            this.vy += this.gravity;
-            this.life -= 0.008; // Tan biến từ từ
-        }
-        draw() {
-            ctx.globalAlpha = this.life;
-            ctx.fillStyle = this.color;
-            ctx.beginPath(); ctx.arc(this.x, this.y, 1.2, 0, Math.PI * 2); ctx.fill();
+            this.vy += 0.03; // Rơi chậm
+            this.life -= 0.01;
         }
     }
 
     async function run() {
-        // 1. Đếm 3 2 1 -> Hiện 2026 luôn
+        // 1. Đếm ngược
         for (let i = 3; i > 0; i--) {
-            textOverlay.innerHTML = `<span class="char" style="font-size:100px">${i}</span>`;
+            textOverlay.innerHTML = `<span style="font-size:100px; color:#fff">${i}</span>`;
             await new Promise(r => setTimeout(r, 1000));
         }
-        await typeEffect("2026", false);
-        await new Promise(r => setTimeout(r, 1500));
         textOverlay.innerHTML = "";
 
-        // 2. Bút vẽ trái tim
+        // 2. Vẽ trái tim
         pen.style.display = "block";
-        ctx.strokeStyle = "red"; ctx.lineWidth = 4; ctx.beginPath();
+        ctx.strokeStyle = "red"; ctx.lineWidth = 5; ctx.beginPath();
         for (let t = 0; t <= Math.PI * 2; t += 0.05) {
-            const x = 16 * Math.pow(Math.sin(t), 3) * 12 + canvas.width / 2;
-            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 12 + canvas.height / 2;
+            const x = 16 * Math.pow(Math.sin(t), 3) * 12 + canvas.width/2;
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 12 + canvas.height/2;
             ctx.lineTo(x, y); ctx.stroke();
             pen.style.left = x + "px"; pen.style.top = y + "px";
-            await new Promise(r => setTimeout(r, 20));
+            await new Promise(r => setTimeout(r, 25));
         }
-        ctx.fillStyle = "red"; ctx.fill();
+        ctx.fillStyle = "red"; ctx.fill(); 
         await new Promise(r => setTimeout(r, 1000));
-        pen.style.display = "none";
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pen.style.display = "none"; ctx.clearRect(0,0,canvas.width,canvas.height);
 
-        // 3. 7 Câu chúc tan biến nhanh
-        for (let wish of wishes) { await typeEffect(wish); }
+        // 3. 7 Lời chúc
+        for (let wish of wishes) {
+            await typeText(wish);
+            await new Promise(r => setTimeout(r, 1500));
+            textOverlay.innerHTML = "";
+            await new Promise(r => setTimeout(r, 300));
+        }
 
-        textOverlay.innerHTML = `<span style="color:#0f0; font-size:25px">QUAY MÀN HÌNH NGANG ĐI ĐẠI CA!</span>`;
         state = "WAIT_ROTATE";
+        textOverlay.innerHTML = `<span style="color:#0f0; font-size:22px">QUAY MÀN HÌNH NGANG ĐI ĐẠI CA!</span>`;
     }
 
     function loop() {
@@ -142,30 +116,50 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (window.innerWidth > window.innerHeight && state === "WAIT_ROTATE") {
-            state = "SHOW_FIREWORKS";
+            state = "FIREWORKS";
             textOverlay.innerHTML = "";
-            // Sau 8 giây hiện chữ 2026 giữa màn hình
-            setTimeout(() => { typeEffect("2026", false); }, 8000);
+            // Đúng 8 giây sau khi nổ pháo mới hiện 2026 đứng im
+            setTimeout(() => {
+                state = "FINISHED";
+                finalDisplay.style.display = "block";
+            }, 8000);
         }
 
-        if (state === "SHOW_FIREWORKS") {
-            if (Math.random() > 0.98) { // Phóng từng cái một, chậm rãi
-                fireworks.push(new Firework(Math.random() * canvas.width, canvas.height, Math.random() * canvas.height / 2.5));
+        if (state === "FIREWORKS" || state === "FINISHED") {
+            if (Math.random() > 0.97) {
+                fireworks.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height,
+                    targetY: Math.random() * canvas.height/2,
+                    color: `hsl(${Math.random()*360}, 100%, 65%)`
+                });
             }
         }
 
         fireworks.forEach((f, i) => {
-            f.update(); f.draw();
-            if (!f.alive) fireworks.splice(i, 1);
+            f.y -= 3;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); ctx.arc(f.x, f.y, 2, 0, Math.PI*2); ctx.fill();
+            if (f.y <= f.targetY) {
+                for (let j = 0; j < 40; j++) particles.push(new Particle(f.x, f.y, f.color));
+                fireworks.splice(i, 1);
+            }
         });
 
         particles.forEach((p, i) => {
-            p.update(); p.draw();
+            p.update();
+            ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
             if (p.life <= 0) particles.splice(i, 1);
         });
 
         requestAnimationFrame(loop);
     }
+
+    window.onresize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
 
     run(); loop();
 </script>
