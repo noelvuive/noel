@@ -8,26 +8,29 @@
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; overflow: hidden; 
-            font-family: 'Courier New', Courier, monospace;
-            touch-action: manipulation; /* Chống zoom Safari */
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
         }
         canvas { position: absolute; top: 0; left: 0; z-index: 5; }
         #text-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; font-size: 60px; font-weight: bold; text-align: center;
+            color: #fff; font-size: 50px; font-weight: bold; text-align: center;
             z-index: 10; pointer-events: none; width: 90%;
-            letter-spacing: 5px; /* Giúp chữ không bị dính */
+            letter-spacing: 15px; /* Tăng khoảng cách chữ cực mạnh */
+            text-transform: uppercase;
         }
         .wish-text { 
-            font-size: 20px !important; 
-            color: #ffcccc !important; 
-            letter-spacing: 1px !important; /* Lời chúc thoáng hơn */
-            line-height: 1.5;
+            font-size: 22px !important; 
+            color: #ff4d4d !important; 
+            letter-spacing: 3px !important; /* Lời chúc thoáng */
+            line-height: 1.6;
+            font-weight: normal !important;
+            text-transform: none !important;
         }
         #pen {
-            position: absolute; font-size: 40px; z-index: 20;
+            position: absolute; font-size: 35px; z-index: 20;
             display: none; pointer-events: none;
-            transition: transform 0.1s linear;
+            margin-top: -30px; margin-left: 5px;
         }
     </style>
 </head>
@@ -47,28 +50,28 @@
     canvas.height = window.innerHeight;
 
     let particles = [];
+    let heartPoints = [];
     const wishes = [
-        "Chúc mừng năm mới 2026!",
-        "Vạn sự như ý - Tỷ sự như mơ",
-        "Sức khỏe dồi dào - Bình an hạnh phúc",
-        "Thành công rực rỡ trong mọi việc",
-        "Luôn giữ vững phong độ đại ca!"
+        "Chúc mừng năm mới 2026 rực rỡ",
+        "Mọi dự định sẽ thành hiện thực",
+        "Sức khỏe dồi dào, vạn sự bình an",
+        "Luôn rạng rỡ và hạnh phúc mỗi ngày",
+        "Chào đón 2026 - Một năm bùng nổ"
     ];
 
-    async function typeText(text, delay = 120) {
-        textOverlay.innerText = "";
-        for (let i = 0; i < text.length; i++) {
-            textOverlay.innerText += text[i];
-            await new Promise(r => setTimeout(r, delay));
-        }
+    // Khởi tạo tọa độ trái tim
+    for (let t = 0; t <= Math.PI * 2; t += 0.05) {
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        heartPoints.push({ x: x * 10 + canvas.width/2, y: y * 10 + canvas.height/2 });
     }
 
     class Particle {
         constructor(x, y, color) {
             this.x = x; this.y = y; this.color = color;
-            this.size = Math.random() * 2 + 1;
-            this.vx = (Math.random() - 0.5) * 8;
-            this.vy = (Math.random() - 0.5) * 8;
+            this.size = Math.random() * 3 + 1;
+            this.vx = (Math.random() - 0.5) * 12;
+            this.vy = (Math.random() - 0.5) * 12;
             this.life = 1;
         }
         update() {
@@ -84,10 +87,16 @@
         }
     }
 
-    function explode(x = canvas.width/2, y = canvas.height/2, color = '#fff') {
-        for(let i=0; i<60; i++) {
-            particles.push(new Particle(x, y, color));
+    async function typeText(text, delay = 150) {
+        textOverlay.innerText = "";
+        for (let i = 0; i < text.length; i++) {
+            textOverlay.innerText += text[i];
+            await new Promise(r => setTimeout(r, delay));
         }
+    }
+
+    function explode(x, y, color) {
+        for(let i=0; i<80; i++) particles.push(new Particle(x, y, color));
     }
 
     async function startFlow() {
@@ -95,79 +104,76 @@
         for (let i = 3; i > 0; i--) {
             textOverlay.innerText = i;
             await new Promise(r => setTimeout(r, 800));
-            explode();
+            explode(canvas.width/2, canvas.height/2, '#fff');
             textOverlay.innerText = "";
             await new Promise(r => setTimeout(r, 200));
         }
 
-        // 2. Gõ chữ 2026
-        await typeText("2026", 200);
+        // 2. Gõ 2026
+        await typeText("2026", 250);
         await new Promise(r => setTimeout(r, 1000));
-        explode();
+        explode(canvas.width/2, canvas.height/2, '#00ff00');
         textOverlay.innerText = "";
 
-        // 3. Hiện cây bút và vẽ trái tim
+        // 3. Hiện bút và vẽ trái tim
         pen.style.display = "block";
-        await new Promise(r => setTimeout(r, 1000)); // Chờ 1 giây theo yêu cầu
+        await new Promise(r => setTimeout(r, 1000));
 
-        const scale = 10; // Trái tim nhỏ vừa phải
         ctx.strokeStyle = "red";
-        ctx.lineWidth = 3;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "red";
-
-        for (let t = 0; t <= Math.PI * 2; t += 0.05) {
-            const x = 16 * Math.pow(Math.sin(t), 3) * scale + canvas.width/2;
-            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale + canvas.height/2;
-            
-            pen.style.left = x + "px";
-            pen.style.top = y + "px";
-            
-            ctx.lineTo(x, y);
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let p of heartPoints) {
+            ctx.lineTo(p.x, p.y);
             ctx.stroke();
-            await new Promise(r => setTimeout(r, 20));
+            pen.style.left = p.x + "px";
+            pen.style.top = p.y + "px";
+            await new Promise(r => setTimeout(r, 30));
         }
         
-        // Tô màu đỏ bên trong
+        // Tô màu
         ctx.fillStyle = "red";
         ctx.fill();
         pen.style.display = "none";
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500));
 
-        // 4. Tan biến 3D
-        for(let i=0; i<400; i++) {
-            particles.push(new Particle(canvas.width/2 + (Math.random()-0.5)*200, canvas.height/2 + (Math.random()-0.5)*200, 'red'));
+        // 4. Tan biến trái tim
+        for(let p of heartPoints) {
+            if(Math.random() > 0.5) explode(p.x, p.y, 'red');
         }
         ctx.clearRect(0,0, canvas.width, canvas.height);
 
-        // 5. Hiện lời chúc gõ máy tính
+        // 5. Hiện lời chúc
         textOverlay.classList.add('wish-text');
         for (let wish of wishes) {
             await typeText(wish, 100);
-            await new Promise(r => setTimeout(r, 2500)); // Đợi đọc xong
-            explode(canvas.width/2, canvas.height/2, '#ffcccc');
+            await new Promise(r => setTimeout(r, 2500));
+            explode(canvas.width/2, canvas.height/2, '#ff4d4d');
             textOverlay.innerText = "";
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 1000));
         }
     }
 
     function animationLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Giữ lại hình trái tim đã vẽ nếu chưa đến lúc tan biến
-        // (Trong logic này ctx.clearRect được gọi trong vòng lặp nên ta xử lý qua particles)
-        particles = particles.filter(p => p.life > 0);
-        particles.forEach(p => { p.update(); p.draw(); });
+        // Chỉ xóa phần hạt để giữ lại hình vẽ trái tim lúc đang vẽ
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,0.1)'; 
+        // ctx.fillRect(0,0,canvas.width, canvas.height); // Bỏ cái này để trái tim không bị mờ
+        ctx.restore();
+
+        // Vẽ particles
+        // Ta dùng một canvas phụ hoặc clear thông minh để giữ trái tim
+        // Để đơn giản, em cho tan biến là xóa hết rồi hiện hạt.
+        if(particles.length > 0) {
+            // Chỉ clear vùng chứa hạt hoặc clear toàn bộ nếu cần tan biến
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+        }
         requestAnimationFrame(animationLoop);
     }
 
     animationLoop();
     startFlow();
-
-    // Fix lỗi resize màn hình
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
 </script>
 </body>
 </html>
