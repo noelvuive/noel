@@ -2,42 +2,60 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CHÀO 2026 - BOSS BON VINH</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
-        canvas { position: absolute; top: 0; left: 0; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; overflow: hidden; 
+            font-family: 'Courier New', Courier, monospace;
+            touch-action: manipulation; /* Chống zoom Safari */
+        }
+        canvas { position: absolute; top: 0; left: 0; z-index: 5; }
         #text-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; font-size: 80px; font-weight: bold; text-align: center;
-            z-index: 10; pointer-events: none; text-shadow: 0 0 20px rgba(255,255,255,0.8);
+            color: #fff; font-size: 60px; font-weight: bold; text-align: center;
+            z-index: 10; pointer-events: none; width: 90%;
+            letter-spacing: 5px; /* Giúp chữ không bị dính */
         }
-        .wish-text { font-size: 24px !important; color: #ffcccc !important; width: 80%; }
+        .wish-text { 
+            font-size: 20px !important; 
+            color: #ffcccc !important; 
+            letter-spacing: 1px !important; /* Lời chúc thoáng hơn */
+            line-height: 1.5;
+        }
+        #pen {
+            position: absolute; font-size: 40px; z-index: 20;
+            display: none; pointer-events: none;
+            transition: transform 0.1s linear;
+        }
     </style>
 </head>
 <body>
 
 <div id="text-overlay"></div>
+<div id="pen">✏️</div>
 <canvas id="canvas"></canvas>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const textOverlay = document.getElementById('text-overlay');
+    const pen = document.getElementById('pen');
+    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     let particles = [];
     const wishes = [
         "Chúc mừng năm mới 2026!",
-        "Chúc bạn một năm đầy hy vọng và thành công.",
-        "Mọi ước mơ của bạn sẽ trở thành hiện thực.",
-        "Hạnh phúc, bình an và luôn nở nụ cười trên môi.",
-        "Chào đón 2026 với những điều rực rỡ nhất!"
+        "Vạn sự như ý - Tỷ sự như mơ",
+        "Sức khỏe dồi dào - Bình an hạnh phúc",
+        "Thành công rực rỡ trong mọi việc",
+        "Luôn giữ vững phong độ đại ca!"
     ];
 
-    // Hàm tạo hiệu ứng gõ chữ
-    async function typeText(text, delay = 100) {
+    async function typeText(text, delay = 120) {
         textOverlay.innerText = "";
         for (let i = 0; i < text.length; i++) {
             textOverlay.innerText += text[i];
@@ -45,13 +63,12 @@
         }
     }
 
-    // Hàm tạo hạt tan biến
     class Particle {
         constructor(x, y, color) {
             this.x = x; this.y = y; this.color = color;
-            this.size = Math.random() * 3 + 1;
-            this.vx = (Math.random() - 0.5) * 10;
-            this.vy = (Math.random() - 0.5) * 10;
+            this.size = Math.random() * 2 + 1;
+            this.vx = (Math.random() - 0.5) * 8;
+            this.vy = (Math.random() - 0.5) * 8;
             this.life = 1;
         }
         update() {
@@ -67,28 +84,14 @@
         }
     }
 
-    function explode() {
-        for(let i=0; i<100; i++) {
-            particles.push(new Particle(canvas.width/2, canvas.height/2, '#fff'));
+    function explode(x = canvas.width/2, y = canvas.height/2, color = '#fff') {
+        for(let i=0; i<60; i++) {
+            particles.push(new Particle(x, y, color));
         }
-    }
-
-    // Vẽ và tô màu trái tim
-    function drawHeartShape(scale) {
-        ctx.beginPath();
-        ctx.fillStyle = "red";
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = "red";
-        for (let t = 0; t <= Math.PI * 2; t += 0.01) {
-            const x = 16 * Math.pow(Math.sin(t), 3);
-            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-            ctx.lineTo(canvas.width/2 + x * scale, canvas.height/2 + y * scale);
-        }
-        ctx.fill();
     }
 
     async function startFlow() {
-        // 1. Đếm ngược 3 2 1 tan biến
+        // 1. Đếm ngược 3 2 1
         for (let i = 3; i > 0; i--) {
             textOverlay.innerText = i;
             await new Promise(r => setTimeout(r, 800));
@@ -103,53 +106,68 @@
         explode();
         textOverlay.innerText = "";
 
-        // 3. Vẽ và tô màu trái tim
-        let scale = 0;
-        while(scale < 15) {
-            ctx.clearRect(0,0, canvas.width, canvas.height);
-            drawHeartShape(scale);
-            scale += 0.5;
-            await new Promise(r => requestAnimationFrame(r));
-        }
-        await new Promise(r => setTimeout(r, 1000));
+        // 3. Hiện cây bút và vẽ trái tim
+        pen.style.display = "block";
+        await new Promise(r => setTimeout(r, 1000)); // Chờ 1 giây theo yêu cầu
 
-        // 4. Trái tim tan biến 3D
-        for(let i=0; i<500; i++) {
-            particles.push(new Particle(canvas.width/2 + (Math.random()-0.5)*300, canvas.height/2 + (Math.random()-0.5)*300, 'red'));
+        const scale = 10; // Trái tim nhỏ vừa phải
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "red";
+
+        for (let t = 0; t <= Math.PI * 2; t += 0.05) {
+            const x = 16 * Math.pow(Math.sin(t), 3) * scale + canvas.width/2;
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale + canvas.height/2;
+            
+            pen.style.left = x + "px";
+            pen.style.top = y + "px";
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            await new Promise(r => setTimeout(r, 20));
         }
         
-        let heartAlpha = 1;
-        while(heartAlpha > 0) {
-            ctx.clearRect(0,0, canvas.width, canvas.height);
-            ctx.globalAlpha = heartAlpha;
-            drawHeartShape(15);
-            heartAlpha -= 0.05;
-            await new Promise(r => requestAnimationFrame(r));
-        }
+        // Tô màu đỏ bên trong
+        ctx.fillStyle = "red";
+        ctx.fill();
+        pen.style.display = "none";
+        await new Promise(r => setTimeout(r, 1200));
 
-        // 5. Hiện lời chúc gõ máy tính và tan biến
+        // 4. Tan biến 3D
+        for(let i=0; i<400; i++) {
+            particles.push(new Particle(canvas.width/2 + (Math.random()-0.5)*200, canvas.height/2 + (Math.random()-0.5)*200, 'red'));
+        }
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+
+        // 5. Hiện lời chúc gõ máy tính
         textOverlay.classList.add('wish-text');
         for (let wish of wishes) {
-            await typeText(wish, 80);
-            await new Promise(r => setTimeout(r, 2000));
-            explode();
+            await typeText(wish, 100);
+            await new Promise(r => setTimeout(r, 2500)); // Đợi đọc xong
+            explode(canvas.width/2, canvas.height/2, '#ffcccc');
             textOverlay.innerText = "";
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 800));
         }
     }
 
     function animationLoop() {
-        if (particles.length > 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles = particles.filter(p => p.life > 0);
-            particles.forEach(p => { p.update(); p.draw(); });
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Giữ lại hình trái tim đã vẽ nếu chưa đến lúc tan biến
+        // (Trong logic này ctx.clearRect được gọi trong vòng lặp nên ta xử lý qua particles)
+        particles = particles.filter(p => p.life > 0);
+        particles.forEach(p => { p.update(); p.draw(); });
         requestAnimationFrame(animationLoop);
     }
 
     animationLoop();
     startFlow();
+
+    // Fix lỗi resize màn hình
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
 </script>
 </body>
 </html>
-
