@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 - BON VINH SUPREME</title>
+    <title>2026 - BON VINH BOSS</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Arial', sans-serif; }
         canvas { position: absolute; top: 0; left: 0; }
         #text-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; font-size: 60px; font-weight: bold; text-align: center;
-            z-index: 10; pointer-events: none; width: 95%;
-            letter-spacing: 20px; white-space: pre-line; line-height: 1.8;
+            color: #fff; font-size: 55px; font-weight: bold; text-align: center;
+            z-index: 10; pointer-events: none; width: 90%;
+            line-height: 1.6; text-shadow: 0 0 15px rgba(255,255,255,0.5);
         }
-        .wish-text { font-size: 22px !important; color: #ff3333 !important; letter-spacing: 4px !important; font-weight: bold !important; }
-        #pen { position: absolute; font-size: 35px; z-index: 20; display: none; pointer-events: none; transform: translate(-10px, -30px); }
+        .wish-text { font-size: 26px !important; color: #ff3333 !important; }
     </style>
 </head>
 <body>
@@ -26,112 +25,116 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const textOverlay = document.getElementById('text-overlay');
-    const pen = document.getElementById('pen');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     let particles = [];
-    let state = "INTRO"; // INTRO -> HEART -> WISHES -> ROTATE -> CITY
+    let state = "START";
     const wishes = [
-        "Năm mới 2026 rực rỡ,\nChúc bạn vạn sự hanh thông.",
-        "Sức khỏe dồi dào tài lộc tới,\nHạnh phúc đong đầy mọi nẻo.",
-        "Mọi dự định sẽ thành hiện thực,\nThành công vang dội tuổi trẻ.",
-        "Gia đình bình an luôn mạnh khỏe,\nNiềm vui ngập tràn khắp nơi.",
-        "Luôn giữ vững niềm tin bản lĩnh,\nVượt qua mọi thử thách cuộc đời.",
-        "Tình duyên chớm nở rực màu hồng,\nCông danh sự nghiệp tiến xa.",
-        "Chào đón 2026 bùng nổ rạng ngời,\nMột năm thật tuyệt vời bạn nhé!"
+        "Chúc Mừng Năm Mới 2026 Rực Rỡ",
+        "Vạn Sự Hanh Thông Tỷ Sự Như Mơ",
+        "Sức Khỏe Dồi Dào Tài Lộc Tới",
+        "Hạnh Phúc Đong Đầy Mọi Nẻo Đường",
+        "Thành Công Vang Dội Tuổi Trẻ",
+        "Bình An Và Mạnh Khỏe Mỗi Ngày",
+        "Chào Đón 2026 Bùng Nổ Rạng Ngời"
     ];
-
-    function getHeartPoint(t, scale) {
-        return {
-            x: 16 * Math.pow(Math.sin(t), 3) * scale + canvas.width / 2,
-            y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale + canvas.height / 2
-        };
-    }
 
     async function typeText(text, isWish = false) {
         textOverlay.innerText = "";
         if(isWish) textOverlay.classList.add('wish-text');
         else textOverlay.classList.remove('wish-text');
-        for (let char of text) {
-            textOverlay.innerText += char;
-            await new Promise(r => setTimeout(r, 80));
+        
+        let words = text.split(" ");
+        for (let i = 0; i < words.length; i++) {
+            textOverlay.innerText += words[i] + " "; // Thêm khoảng trắng thật để chữ không dính
+            await new Promise(r => setTimeout(r, 200));
         }
     }
 
-    function createExplosion(x, y, color, count = 50) {
-        for(let i=0; i<count; i++) {
+    function createFirework(x, y, color) {
+        for(let i=0; i<80; i++) {
             particles.push({
-                x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
-                life: 1, color: color, gravity: 0.1
+                x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                life: 1, color: color, gravity: 0.12
             });
         }
     }
 
-    async function start() {
-        // 1. 3-2-1
+    async function run() {
+        // 1. Đếm ngược
         for (let i = 3; i > 0; i--) { textOverlay.innerText = i; await new Promise(r => setTimeout(r, 1000)); }
-        await typeText("2026"); await new Promise(r => setTimeout(r, 1200)); textOverlay.innerText = "";
-
-        // 2. Vẽ Trái Tim (State: HEART)
-        state = "HEART"; pen.style.display = "block";
-        ctx.strokeStyle = "red"; ctx.lineWidth = 5; ctx.beginPath();
-        for (let t = 0; t <= Math.PI * 2; t += 0.05) {
-            const p = getHeartPoint(t, 12);
-            ctx.lineTo(p.x, p.y); ctx.stroke();
-            pen.style.left = p.x + "px"; pen.style.top = p.y + "px";
-            await new Promise(r => setTimeout(r, 30));
-        }
-        ctx.fillStyle = "red"; ctx.fill(); pen.style.display = "none";
+        
+        // 2. Chữ 2026 to đẹp
+        await typeText("Năm Mới 2026");
         await new Promise(r => setTimeout(r, 1500));
+        textOverlay.innerText = "";
 
-        // 3. Tan biến trái tim (3D)
-        createExplosion(canvas.width/2, canvas.height/2, 'red', 200);
-        ctx.clearRect(0,0,canvas.width,canvas.height); state = "WISHES";
+        // 3. Vẽ Trái Tim (Rút gọn cho nhanh)
+        state = "HEART";
+        ctx.strokeStyle = "red"; ctx.lineWidth = 4; ctx.beginPath();
+        for (let t = 0; t <= Math.PI * 2; t += 0.1) {
+            const scale = 12;
+            const x = 16 * Math.pow(Math.sin(t), 3) * scale + canvas.width/2;
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale + canvas.height/2;
+            ctx.lineTo(x, y); ctx.stroke();
+            await new Promise(r => setTimeout(r, 20));
+        }
+        ctx.fillStyle = "red"; ctx.fill();
+        await new Promise(r => setTimeout(r, 1000));
+        ctx.clearRect(0,0,canvas.width,canvas.height);
 
-        // 4. 7 Câu chúc
+        // 4. 7 Lời chúc tan biến
         for (let wish of wishes) {
-            await typeText(wish, true); await new Promise(r => setTimeout(r, 2500));
-            createExplosion(canvas.width/2, canvas.height/2, '#ff3333', 100);
-            textOverlay.innerText = ""; await new Promise(r => setTimeout(r, 800));
+            await typeText(wish, true);
+            await new Promise(r => setTimeout(r, 2000));
+            createFirework(canvas.width/2, canvas.height/2, 'red');
+            textOverlay.innerText = "";
+            await new Promise(r => setTimeout(r, 800));
         }
 
-        // 5. Quay màn hình
-        state = "ROTATE";
-        textOverlay.classList.remove('wish-text');
-        textOverlay.style.letterSpacing = "2px";
+        // 5. Yêu cầu quay ngang
+        textOverlay.style.color = "#00ff00";
         textOverlay.innerText = "BẠN QUAY MÀN HÌNH NGANG ĐI!";
-
-        window.addEventListener("orientationchange", () => {
-            if(Math.abs(window.orientation) === 90) state = "CITY";
-        });
+        state = "WAIT_ROTATE";
     }
 
     function drawCity() {
-        ctx.fillStyle = "#050505";
-        for(let i=0; i<canvas.width; i+=50) {
-            let h = (Math.sin(i) * 30) + 100;
-            ctx.fillRect(i, canvas.height - h, 40, h);
-            ctx.fillStyle = Math.random() > 0.8 ? "#ff0" : "#333";
-            ctx.fillRect(i+10, canvas.height - h + 20, 5, 5);
-            ctx.fillStyle = "#050505";
+        const ground = canvas.height * 0.9;
+        // Vẽ skyline thành phố
+        for(let i=0; i<canvas.width; i+=60) {
+            const h = 150 + Math.sin(i)*50;
+            ctx.fillStyle = "#0a0a0a";
+            ctx.fillRect(i, ground - h, 50, h);
+            // Cửa sổ phát sáng
+            ctx.fillStyle = "#ff0";
+            for(let row=1; row<4; row++) {
+                for(let col=1; col<3; col++) {
+                    if(Math.random() > 0.3) ctx.fillRect(i + col*15, ground - h + row*30, 8, 8);
+                }
+            }
         }
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, ground, canvas.width, canvas.height * 0.1);
     }
 
     function loop() {
-        if (state !== "CITY") ctx.fillStyle = "rgba(0,0,0,0.2)";
-        else ctx.fillStyle = "rgba(0,0,0,0.1)";
-        
-        if (state !== "HEART") ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        if (state === "CITY") {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (window.innerWidth > window.innerHeight && state === "WAIT_ROTATE") {
+            state = "CITY_VIEW";
+            textOverlay.innerText = "";
+        }
+
+        if (state === "CITY_VIEW") {
             drawCity();
-            if(Math.random() > 0.95) createExplosion(Math.random()*canvas.width, Math.random()*canvas.height/2, `hsl(${Math.random()*360},100%,50%)`, 80);
+            if(Math.random() > 0.96) createFirework(Math.random()*canvas.width, Math.random()*canvas.height/3, `hsl(${Math.random()*360},100%,60%)`);
         }
 
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy;
-            if(state === "CITY") p.vy += p.gravity;
+            if(state === "CITY_VIEW") p.vy += p.gravity;
             p.life -= 0.015;
             ctx.globalAlpha = p.life;
             ctx.fillStyle = p.color;
@@ -142,8 +145,13 @@
         requestAnimationFrame(loop);
     }
 
-    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
-    loop(); start();
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    run();
+    loop();
 </script>
 </body>
 </html>
